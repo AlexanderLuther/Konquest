@@ -1,0 +1,262 @@
+package com.hluther.parser;
+import java_cup.runtime.*;
+import com.hluther.gui.Konquest;
+import com.hluther.lexer.MapConfigFileLexer;
+
+parser code {:
+
+    private Konquest konquestFrame;
+  
+    public MapConfigFileParser(MapConfigFileLexer lexer, Konquest konquestFrame) { 
+        super(lexer);
+        this.konquestFrame = konquestFrame; 
+    }
+
+    public void syntax_error(Symbol s){
+        System.out.println("Error " + s);
+        //principalFrame.printSintaxError(s);
+    }
+
+    public void unrecovered_syntax_error(Symbol s){
+        System.out.println("Error grave " + s);
+        //principalFrame.printSintaxError(s);
+    } 
+
+:}
+
+/* Terminals */
+terminal String NAMEID, NAMEPLANET, NAMEPLAYER, CURLYBRACKETO, CURLYBRACKETC, SQUAREBRACKETO, SQUAREBRACKETC, COLON, COMMA, INTEGER, DOUBLE, TRUE, FALSE, MAP, ID, SIZE, ROWS, COLUMNS, RANDOM, NEUTRALP,
+                BLIND, ACCUMULATE, NEUTRAL, SHOWSPACESHIPS, SHOWSTATISTICS, PRODUCTION, COMPLETION, PLANETS, SPACESHIPS, DEATHRATE, NEUTRALPLANETS, PLAYERS, PLAYERPLANETS, TYPE, HUMAN, EASY, HARD, NAME;
+
+/* Non-terminals */
+non terminal       konquest, players, playerRulesSelector, playersDescription, playerName, name, playerPlanets, planetsName, playerType, type, planets, planetsDescription, planetRulesSelector, planetName, 
+                   planetSpaceShips, planetProduction, planetDeathRate, neutralPlanets, neutralPlanetsDescription, neutralPlanetRulesSelector, map, mapRulesSelector, id, size, neutralPlanetsMap, neutral,
+                   random, blindMap, accumulate, completion, konquestRulesSelector, mapName, sizeRulesSelector, rows, columns, neutralRulesSelector, showSpaceShips, showStatistics, production, boolean;
+
+/* The grammar */
+start with konquest;
+
+/*-------------------------------------------------------ESTRUCTURA GENERAL KONQUEST-------------------------------------------------------*/
+
+konquest::=     CURLYBRACKETO konquestRulesSelector CURLYBRACKETC
+                ;
+
+konquestRulesSelector::=    map COMMA planets COMMA neutralPlanets COMMA players
+                            | planets COMMA map COMMA neutralPlanets COMMA players
+                            | planets COMMA neutralPlanets COMMA map COMMA players
+                            | planets COMMA neutralPlanets COMMA players COMMA map
+                            | map COMMA planets COMMA players COMMA neutralPlanets
+                            | planets COMMA map COMMA players COMMA neutralPlanets
+                            | planets COMMA players COMMA map COMMA neutralPlanets
+                            | planets COMMA players COMMA neutralPlanets COMMA map
+                            | map COMMA neutralPlanets COMMA planets COMMA players
+                            | neutralPlanets COMMA map COMMA planets COMMA players
+                            | neutralPlanets COMMA planets COMMA map COMMA players
+                            | neutralPlanets COMMA planets COMMA players COMMA map
+                            | map COMMA neutralPlanets COMMA players COMMA planets
+                            | neutralPlanets COMMA map COMMA players COMMA planets
+                            | neutralPlanets COMMA players COMMA map COMMA planets
+                            | neutralPlanets COMMA players COMMA planets COMMA map
+                            | map COMMA players COMMA planets COMMA neutralPlanets
+                            | players COMMA map COMMA planets COMMA neutralPlanets
+                            | players COMMA planets COMMA map COMMA neutralPlanets
+                            | players COMMA planets COMMA neutralPlanets COMMA map
+                            | map COMMA players COMMA neutralPlanets COMMA planets
+                            | players COMMA map COMMA neutralPlanets COMMA planets
+                            | players COMMA neutralPlanets COMMA map COMMA planets
+                            | players COMMA neutralPlanets COMMA planets COMMA map
+                            ;    
+
+/*-------------------------------------------------------ESTRUCTURA MAPA-------------------------------------------------------*/
+
+map::=  MAP COLON CURLYBRACKETO mapRulesSelector CURLYBRACKETC 
+        ;
+    
+mapRulesSelector::=     id
+                        | size
+                        | neutral
+                        | random
+                        | neutralPlanetsMap
+                        | blindMap
+                        | accumulate
+                        | completion
+                        | id COMMA mapRulesSelector
+                        | size COMMA mapRulesSelector
+                        | neutral COMMA mapRulesSelector
+                        | random COMMA mapRulesSelector
+                        | neutralPlanetsMap COMMA mapRulesSelector
+                        | blindMap COMMA mapRulesSelector
+                        | accumulate COMMA mapRulesSelector
+                        | completion COMMA mapRulesSelector
+                        ;
+
+//------------------------------------------------------------------------------          
+id::=   ID COLON mapName:name {:RESULT = name; System.out.println(name.toString());:}
+        ;
+
+mapName::=  NAMEID:name {:RESULT = name;:}
+            | NAMEPLANET:name {:RESULT = name;:}
+            | NAMEPLAYER:name {:RESULT = name;:}
+            ; 
+
+//------------------------------------------------------------------------------
+size::=     SIZE COLON CURLYBRACKETO sizeRulesSelector CURLYBRACKETC
+            ;
+
+sizeRulesSelector::=    rows COMMA columns
+                        | columns COMMA rows
+                        ;
+
+rows::=     ROWS COLON INTEGER
+            ;
+
+columns::=   COLUMNS COLON INTEGER
+            ;
+
+//------------------------------------------------------------------------------
+neutral::=   NEUTRAL COLON CURLYBRACKETO neutralRulesSelector CURLYBRACKETC
+                        ;
+
+neutralRulesSelector::=     showSpaceShips COMMA showStatistics COMMA production
+                            | showSpaceShips COMMA production COMMA showStatistics
+                            | showStatistics COMMA showSpaceShips COMMA production
+                            | showStatistics COMMA production COMMA showSpaceShips
+                            | production COMMA showSpaceShips COMMA showStatistics 
+                            | production COMMA showStatistics COMMA showSpaceShips
+                            ;
+
+showSpaceShips::=   SHOWSPACESHIPS COLON boolean
+                    ;
+
+showStatistics::=   SHOWSTATISTICS COLON boolean
+                    ;
+
+production::=   PRODUCTION COLON INTEGER
+                ;
+
+boolean::=     TRUE
+               | FALSE
+               ;
+
+//------------------------------------------------------------------------------
+
+random::=   RANDOM COLON boolean
+            ;
+
+neutralPlanetsMap::=    NEUTRALP COLON INTEGER
+                        ;
+
+blindMap::=     BLIND COLON boolean
+                ;
+
+accumulate::=   ACCUMULATE COLON boolean
+                ;
+
+completion::=   COMPLETION COLON INTEGER
+                ;  
+
+
+/*-------------------------------------------------------ESTRUCTURA PLANETAS-------------------------------------------------------*/
+
+planets::=     PLANETS COLON SQUAREBRACKETO planetsDescription SQUAREBRACKETC 
+               ;
+
+planetsDescription::=  CURLYBRACKETO planetRulesSelector CURLYBRACKETC COMMA planetsDescription
+                       | CURLYBRACKETO planetRulesSelector CURLYBRACKETC 
+                       ;
+ 
+planetRulesSelector::=      planetName COMMA planetProduction COMMA planetSpaceShips COMMA planetDeathRate
+                            | planetProduction COMMA planetName COMMA planetSpaceShips COMMA planetDeathRate
+                            | planetProduction COMMA planetSpaceShips COMMA planetName COMMA planetDeathRate
+                            | planetProduction COMMA planetSpaceShips COMMA planetDeathRate COMMA planetName
+                            | planetName COMMA planetProduction COMMA planetDeathRate COMMA planetSpaceShips
+                            | planetProduction COMMA planetName COMMA planetDeathRate COMMA planetSpaceShips
+                            | planetProduction COMMA planetDeathRate COMMA planetName COMMA planetSpaceShips
+                            | planetProduction COMMA planetDeathRate COMMA planetSpaceShips COMMA planetName
+                            | planetName COMMA planetSpaceShips COMMA planetDeathRate COMMA planetProduction
+                            | planetSpaceShips COMMA planetName COMMA planetDeathRate COMMA planetProduction
+                            | planetSpaceShips COMMA planetDeathRate COMMA planetName COMMA planetProduction
+                            | planetSpaceShips COMMA planetDeathRate COMMA planetProduction COMMA planetName
+                            | planetName COMMA planetSpaceShips COMMA planetProduction COMMA planetDeathRate
+                            | planetSpaceShips COMMA planetName COMMA planetProduction COMMA planetDeathRate
+                            | planetSpaceShips COMMA planetProduction COMMA planetName COMMA planetDeathRate
+                            | planetSpaceShips COMMA planetProduction COMMA planetDeathRate COMMA planetName
+                            | planetName COMMA planetDeathRate COMMA planetSpaceShips COMMA planetProduction
+                            | planetDeathRate COMMA planetName COMMA planetSpaceShips COMMA planetProduction
+                            | planetDeathRate COMMA planetSpaceShips COMMA planetName COMMA planetProduction
+                            | planetDeathRate COMMA planetSpaceShips COMMA planetProduction COMMA planetName
+                            | planetName COMMA planetDeathRate COMMA planetProduction COMMA planetSpaceShips
+                            | planetDeathRate COMMA planetName COMMA planetProduction COMMA planetSpaceShips 
+                            | planetDeathRate COMMA planetProduction COMMA planetName COMMA planetSpaceShips 
+                            | planetDeathRate COMMA planetProduction COMMA planetSpaceShips COMMA planetName 
+                            ;
+
+planetName::=   NAME COLON NAMEPLANET
+                ;
+
+planetSpaceShips::=     SPACESHIPS COLON INTEGER
+                        ;
+
+planetProduction::=     PRODUCTION COLON INTEGER
+                        ;
+
+planetDeathRate::=      DEATHRATE COLON DOUBLE
+                        ;
+
+
+/*-------------------------------------------------------ESTRUCTURA PLANETAS_NEUTRALES-------------------------------------------------------*/
+
+neutralPlanets::=   NEUTRALPLANETS COLON SQUAREBRACKETO neutralPlanetsDescription SQUAREBRACKETC 
+                    ;
+
+neutralPlanetsDescription::=    CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC COMMA neutralPlanetsDescription
+                                | CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC
+                                ;
+
+neutralPlanetRulesSelector::=   planetName COMMA planetSpaceShips COMMA planetDeathRate
+                                | planetName COMMA planetDeathRate COMMA planetSpaceShips
+                                | planetSpaceShips COMMA planetName COMMA planetDeathRate
+                                | planetSpaceShips COMMA planetDeathRate COMMA planetName
+                                | planetDeathRate COMMA planetName COMMA planetSpaceShips
+                                | planetDeathRate COMMA planetSpaceShips COMMA planetName
+                                | planetRulesSelector
+                                ;
+
+/*-------------------------------------------------------ESTRUCTURA JUGADORES-------------------------------------------------------*/
+
+players::=     PLAYERS COLON SQUAREBRACKETO playersDescription SQUAREBRACKETC 
+               ;
+
+playersDescription::=   CURLYBRACKETO playerRulesSelector CURLYBRACKETC COMMA playersDescription
+                        | CURLYBRACKETO playerRulesSelector CURLYBRACKETC
+                       ;
+
+playerRulesSelector::=    playerPlanets COMMA playerName COMMA playerType
+                          | playerPlanets COMMA playerType COMMA playerName
+                          | playerName COMMA playerPlanets COMMA playerType
+                          | playerName COMMA playerType COMMA playerPlanets
+                          | playerType COMMA playerName COMMA playerPlanets
+                          | playerType COMMA playerPlanets COMMA playerName
+                          ;
+
+playerName::=   NAME COLON name
+                ;
+
+name::=     NAMEPLANET
+            | NAMEPLAYER
+            ;
+
+playerPlanets::=   PLAYERPLANETS COLON SQUAREBRACKETO planetsName SQUAREBRACKETC
+                   ;
+
+planetsName::=   NAMEPLANET COMMA planetsName
+                | NAMEPLANET
+                ;
+
+playerType::=   TYPE COLON type
+                ;
+
+type::=     HUMAN
+            | EASY
+            | HARD
+            ;
