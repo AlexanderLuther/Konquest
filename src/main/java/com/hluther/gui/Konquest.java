@@ -1,7 +1,15 @@
 package com.hluther.gui;
 
 import com.hluther.drivers.AnalisysDriver;
-
+import com.hluther.drivers.MapConfigFileDriver;
+import com.hluther.entityclasses.Map;
+import com.hluther.entityclasses.Planet;
+import com.hluther.entityclasses.Player;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import javax.imageio.ImageIO;
 /**
  *
  * @author helmuth
@@ -9,6 +17,8 @@ import com.hluther.drivers.AnalisysDriver;
 public class Konquest extends javax.swing.JFrame {
     
     private AnalisysDriver analisisDriver = new AnalisysDriver();
+    private MapConfigFileDriver mapConfigFileDriver = new MapConfigFileDriver();
+    private BackGroundImage backGroundImage;
 
     /**
      * Creates new form Konquest
@@ -17,11 +27,57 @@ public class Konquest extends javax.swing.JFrame {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setExtendedState(MAXIMIZED_BOTH);
+        try {
+            backGroundImage = new BackGroundImage(ImageIO.read(this.getClass().getResource("/konquestBackGround.jpg")));     
+            this.backGroundPanel.setBorder(backGroundImage);
+        } 
+        catch (IOException ex) {
+            System.out.println("Imagen no encontrada");
+        }
+    }
+
+    
+    public MapConfigFileDriver getMapConfigFileDriver() {
+        return mapConfigFileDriver;
     }
     
     private void start(String text){
+       mapConfigFileDriver.clearLists();
        analisisDriver.doMapConfigFileAnalysis(text, this);
-    
+       List<Planet> planets = new ArrayList<Planet>();
+       planets = mapConfigFileDriver.getPlanets();
+       for(int i = 0; i < planets.size(); i++){
+           System.out.println(i+1 + " " + planets.get(i).getName()+" "+planets.get(i).getSpaceShips()+" "+planets.get(i).getProduction()+" "+planets.get(i).getDeathRate()+" "+planets.get(i).isNeutral()+" "+planets.get(i).isGeneralProduction());
+       }
+       
+        System.out.println("\n");
+       List<Player> players = new ArrayList<Player>();
+        players = mapConfigFileDriver.getPlayers();
+       for(int i = 0; i < players.size(); i++){
+           System.out.println(i+1 + " " + players.get(i).getName()+" "+players.get(i).getPlanetsName()+" "+players.get(i).getType());
+       }
+       
+        System.out.println("\n");
+       List<String> messages = new ArrayList<String>();
+        messages = mapConfigFileDriver.getMessages();
+       for(int i = 0; i < messages.size(); i++){
+           System.out.println(i+1 + " " + messages.get(i));
+       }
+       
+       
+        System.out.println("\n");
+        Map map = mapConfigFileDriver.getMap();
+        System.out.println("Name: " + map.getName());
+        System.out.println("Filas: " + map.getRows());
+        System.out.println("Columnas: " + map.getColumns());
+        System.out.println("alAzar: " + map.isRandom());
+        System.out.println("planetasNeutrales: " + map.getNeutralPlanets());
+        System.out.println("mapaCiego: " + map.isBlindMap());
+        System.out.println("acumular: " + map.isAccumulate());
+        System.out.println("mostrarNaves: " + map.isShowSpaceShips());
+        System.out.println("mostrarEstadisticas: " + map.isShowStatistics());
+        System.out.println("produccion: " + map.getProduction());
+        System.out.println("finalizacion: " + map.getCompletion());           
     }
 
     /**
@@ -33,52 +89,133 @@ public class Konquest extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
+        jMenuItem2 = new javax.swing.JMenuItem();
+        backGroundPanel = new javax.swing.JPanel();
+        menuPanel = new javax.swing.JPanel();
         jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jButton3 = new javax.swing.JButton();
+        jButton4 = new javax.swing.JButton();
+        jButton5 = new javax.swing.JButton();
+        jButton6 = new javax.swing.JButton();
+        jMenuBar1 = new javax.swing.JMenuBar();
+        game = new javax.swing.JMenu();
+        newGame = new javax.swing.JMenuItem();
+        move = new javax.swing.JMenu();
+        jMenuItem1 = new javax.swing.JMenuItem();
+
+        jMenuItem2.setText("jMenuItem2");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Konquest");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        backGroundPanel.setAutoscrolls(true);
+        backGroundPanel.setEnabled(false);
+        backGroundPanel.setLayout(new java.awt.BorderLayout());
 
-        jButton1.setText("jButton1");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
+        menuPanel.setMaximumSize(new java.awt.Dimension(32767, 20));
+        menuPanel.setMinimumSize(new java.awt.Dimension(100, 20));
+        menuPanel.setPreferredSize(new java.awt.Dimension(2880, 20));
+        menuPanel.setLayout(new java.awt.GridLayout());
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1)
-                .addGap(120, 120, 120))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 388, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(45, 45, 45)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 260, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        jButton1.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+        jButton1.setText("Nuevo");
+        jButton1.setActionCommand("");
+        jButton1.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jButton1.setBorderPainted(false);
+        jButton1.setFocusPainted(false);
+        jButton1.setMaximumSize(new java.awt.Dimension(170, 20));
+        jButton1.setMinimumSize(new java.awt.Dimension(170, 20));
+        jButton1.setPreferredSize(new java.awt.Dimension(170, 20));
+        menuPanel.add(jButton1);
+
+        jButton2.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+        jButton2.setText("Finalizar partida");
+        jButton2.setActionCommand("");
+        jButton2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jButton2.setBorderPainted(false);
+        jButton2.setFocusPainted(false);
+        jButton2.setMaximumSize(new java.awt.Dimension(150, 20));
+        jButton2.setMinimumSize(new java.awt.Dimension(150, 20));
+        jButton2.setPreferredSize(new java.awt.Dimension(150, 20));
+        menuPanel.add(jButton2);
+
+        jButton3.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+        jButton3.setText("Fin del turno");
+        jButton3.setActionCommand("");
+        jButton3.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jButton3.setBorderPainted(false);
+        jButton3.setFocusPainted(false);
+        jButton3.setMaximumSize(new java.awt.Dimension(150, 20));
+        jButton3.setMinimumSize(new java.awt.Dimension(150, 20));
+        jButton3.setPreferredSize(new java.awt.Dimension(150, 20));
+        menuPanel.add(jButton3);
+
+        jButton4.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+        jButton4.setText("Medir distancia");
+        jButton4.setActionCommand("");
+        jButton4.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jButton4.setBorderPainted(false);
+        jButton4.setFocusPainted(false);
+        jButton4.setMaximumSize(new java.awt.Dimension(150, 20));
+        jButton4.setMinimumSize(new java.awt.Dimension(150, 20));
+        jButton4.setPreferredSize(new java.awt.Dimension(150, 20));
+        menuPanel.add(jButton4);
+
+        jButton5.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+        jButton5.setText("Mostrar posiciones");
+        jButton5.setActionCommand("");
+        jButton5.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jButton5.setBorderPainted(false);
+        jButton5.setFocusPainted(false);
+        jButton5.setMaximumSize(new java.awt.Dimension(150, 20));
+        jButton5.setMinimumSize(new java.awt.Dimension(150, 20));
+        jButton5.setPreferredSize(new java.awt.Dimension(150, 20));
+        menuPanel.add(jButton5);
+
+        jButton6.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+        jButton6.setText("Vista general de la flota");
+        jButton6.setActionCommand("");
+        jButton6.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jButton6.setBorderPainted(false);
+        jButton6.setFocusPainted(false);
+        jButton6.setMaximumSize(new java.awt.Dimension(150, 20));
+        jButton6.setMinimumSize(new java.awt.Dimension(150, 20));
+        jButton6.setPreferredSize(new java.awt.Dimension(150, 20));
+        menuPanel.add(jButton6);
+
+        backGroundPanel.add(menuPanel, java.awt.BorderLayout.PAGE_START);
+
+        getContentPane().add(backGroundPanel, java.awt.BorderLayout.CENTER);
+
+        jMenuBar1.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        jMenuBar1.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 14)); // NOI18N
+
+        game.setText("     Juego     ");
+        game.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+
+        newGame.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        newGame.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 14)); // NOI18N
+        newGame.setIcon(new javax.swing.ImageIcon(getClass().getResource("/nuevo.png"))); // NOI18N
+        newGame.setText("Nuevo");
+        game.add(newGame);
+
+        jMenuBar1.add(game);
+
+        move.setText("     Mover     ");
+        move.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+
+        jMenuItem1.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 14)); // NOI18N
+        jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/adelante.png"))); // NOI18N
+        jMenuItem1.setText("Fin del turno");
+        move.add(jMenuItem1);
+
+        jMenuBar1.add(move);
+
+        setJMenuBar(jMenuBar1);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        this.start(jTextArea1.getText());
-    }//GEN-LAST:event_jButton1ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -116,8 +253,19 @@ public class Konquest extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel backGroundPanel;
+    private javax.swing.JMenu game;
     private javax.swing.JButton jButton1;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
+    private javax.swing.JButton jButton4;
+    private javax.swing.JButton jButton5;
+    private javax.swing.JButton jButton6;
+    private javax.swing.JMenuBar jMenuBar1;
+    private javax.swing.JMenuItem jMenuItem1;
+    private javax.swing.JMenuItem jMenuItem2;
+    private javax.swing.JPanel menuPanel;
+    private javax.swing.JMenu move;
+    private javax.swing.JMenuItem newGame;
     // End of variables declaration//GEN-END:variables
 }

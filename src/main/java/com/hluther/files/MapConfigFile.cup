@@ -2,14 +2,17 @@ package com.hluther.parser;
 import java_cup.runtime.*;
 import com.hluther.gui.Konquest;
 import com.hluther.lexer.MapConfigFileLexer;
+import com.hluther.drivers.MapConfigFileDriver;
 
 parser code {:
 
     private Konquest konquestFrame;
+    private MapConfigFileDriver mapConfigFileDriver;
   
     public MapConfigFileParser(MapConfigFileLexer lexer, Konquest konquestFrame) { 
         super(lexer);
-        this.konquestFrame = konquestFrame; 
+        this.konquestFrame = konquestFrame;
+        mapConfigFileDriver = this.konquestFrame.getMapConfigFileDriver();
     }
 
     public void syntax_error(Symbol s){
@@ -69,7 +72,7 @@ konquestRulesSelector::=    map COMMA planets COMMA neutralPlanets COMMA players
 
 /*-------------------------------------------------------ESTRUCTURA MAPA-------------------------------------------------------*/
 
-map::=  MAP COLON CURLYBRACKETO mapRulesSelector CURLYBRACKETC 
+map::=  MAP COLON CURLYBRACKETO mapRulesSelector CURLYBRACKETC {:mapConfigFileDriver.createMap();:} 
         ;
     
 mapRulesSelector::=     id
@@ -91,12 +94,12 @@ mapRulesSelector::=     id
                         ;
 
 //------------------------------------------------------------------------------          
-id::=   ID COLON mapName:name {:RESULT = name; System.out.println(name.toString());:}
+id::=   ID COLON mapName:name {:mapConfigFileDriver.createMapData("id", name.toString());:}
         ;
 
-mapName::=  NAMEID:name {:RESULT = name;:}
-            | NAMEPLANET:name {:RESULT = name;:}
-            | NAMEPLAYER:name {:RESULT = name;:}
+mapName::=  NAMEID:name {:RESULT = name.replace("\"", "");:}
+            | NAMEPLANET:name {:RESULT = name.replace("\"", "");:}
+            | NAMEPLAYER:name {:RESULT = name.replace("\"", "");:}
             ; 
 
 //------------------------------------------------------------------------------
@@ -107,10 +110,10 @@ sizeRulesSelector::=    rows COMMA columns
                         | columns COMMA rows
                         ;
 
-rows::=     ROWS COLON INTEGER
+rows::=     ROWS COLON INTEGER:amount {:mapConfigFileDriver.createMapData("rows", amount.toString());:}
             ;
 
-columns::=   COLUMNS COLON INTEGER
+columns::=   COLUMNS COLON INTEGER:amount {:mapConfigFileDriver.createMapData("columns", amount.toString());:}
             ;
 
 //------------------------------------------------------------------------------
@@ -125,34 +128,34 @@ neutralRulesSelector::=     showSpaceShips COMMA showStatistics COMMA production
                             | production COMMA showStatistics COMMA showSpaceShips
                             ;
 
-showSpaceShips::=   SHOWSPACESHIPS COLON boolean
+showSpaceShips::=   SHOWSPACESHIPS COLON boolean:value {:mapConfigFileDriver.createMapData("showSpaceShips", value.toString());:}
                     ;
 
-showStatistics::=   SHOWSTATISTICS COLON boolean
+showStatistics::=   SHOWSTATISTICS COLON boolean:value {:mapConfigFileDriver.createMapData("showStatistics", value.toString());:}
                     ;
 
-production::=   PRODUCTION COLON INTEGER
+production::=   PRODUCTION COLON INTEGER:amount {:mapConfigFileDriver.createMapData("production", amount.toString());:}
                 ;
 
-boolean::=     TRUE
-               | FALSE
+boolean::=     TRUE:value {:RESULT = value;:}
+               | FALSE:value {:RESULT = value;:}
                ;
 
 //------------------------------------------------------------------------------
 
-random::=   RANDOM COLON boolean
+random::=   RANDOM COLON boolean:value {:mapConfigFileDriver.createMapData("random", value.toString());:}
             ;
 
-neutralPlanetsMap::=    NEUTRALP COLON INTEGER
+neutralPlanetsMap::=    NEUTRALP COLON INTEGER:amount {:mapConfigFileDriver.createMapData("neutralPlanets", amount.toString());:}
                         ;
 
-blindMap::=     BLIND COLON boolean
+blindMap::=     BLIND COLON boolean:value {:mapConfigFileDriver.createMapData("blindMap", value.toString());:}
                 ;
 
-accumulate::=   ACCUMULATE COLON boolean
+accumulate::=   ACCUMULATE COLON boolean:value {:mapConfigFileDriver.createMapData("accumulate", value.toString());:}
                 ;
 
-completion::=   COMPLETION COLON INTEGER
+completion::=   COMPLETION COLON INTEGER:amount {:mapConfigFileDriver.createMapData("completion", amount.toString());:}
                 ;  
 
 
@@ -165,44 +168,43 @@ planetsDescription::=  CURLYBRACKETO planetRulesSelector CURLYBRACKETC COMMA pla
                        | CURLYBRACKETO planetRulesSelector CURLYBRACKETC 
                        ;
  
-planetRulesSelector::=      planetName COMMA planetProduction COMMA planetSpaceShips COMMA planetDeathRate
-                            | planetProduction COMMA planetName COMMA planetSpaceShips COMMA planetDeathRate
-                            | planetProduction COMMA planetSpaceShips COMMA planetName COMMA planetDeathRate
-                            | planetProduction COMMA planetSpaceShips COMMA planetDeathRate COMMA planetName
-                            | planetName COMMA planetProduction COMMA planetDeathRate COMMA planetSpaceShips
-                            | planetProduction COMMA planetName COMMA planetDeathRate COMMA planetSpaceShips
-                            | planetProduction COMMA planetDeathRate COMMA planetName COMMA planetSpaceShips
-                            | planetProduction COMMA planetDeathRate COMMA planetSpaceShips COMMA planetName
-                            | planetName COMMA planetSpaceShips COMMA planetDeathRate COMMA planetProduction
-                            | planetSpaceShips COMMA planetName COMMA planetDeathRate COMMA planetProduction
-                            | planetSpaceShips COMMA planetDeathRate COMMA planetName COMMA planetProduction
-                            | planetSpaceShips COMMA planetDeathRate COMMA planetProduction COMMA planetName
-                            | planetName COMMA planetSpaceShips COMMA planetProduction COMMA planetDeathRate
-                            | planetSpaceShips COMMA planetName COMMA planetProduction COMMA planetDeathRate
-                            | planetSpaceShips COMMA planetProduction COMMA planetName COMMA planetDeathRate
-                            | planetSpaceShips COMMA planetProduction COMMA planetDeathRate COMMA planetName
-                            | planetName COMMA planetDeathRate COMMA planetSpaceShips COMMA planetProduction
-                            | planetDeathRate COMMA planetName COMMA planetSpaceShips COMMA planetProduction
-                            | planetDeathRate COMMA planetSpaceShips COMMA planetName COMMA planetProduction
-                            | planetDeathRate COMMA planetSpaceShips COMMA planetProduction COMMA planetName
-                            | planetName COMMA planetDeathRate COMMA planetProduction COMMA planetSpaceShips
-                            | planetDeathRate COMMA planetName COMMA planetProduction COMMA planetSpaceShips 
-                            | planetDeathRate COMMA planetProduction COMMA planetName COMMA planetSpaceShips 
-                            | planetDeathRate COMMA planetProduction COMMA planetSpaceShips COMMA planetName 
+planetRulesSelector::=      planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetProduction:production COMMA planetName:name COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetProduction:production COMMA planetSpaceShips:ships COMMA planetName:name COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetName:name COMMA planetProduction:production COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetProduction:production COMMA planetName:name COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetProduction:production COMMA planetDeathRate:deathRate COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetProduction:production COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetName:name COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetSpaceShips:ships COMMA planetName:name COMMA planetDeathRate:deathRate COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetName:name COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetProduction:production COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetName:name COMMA planetSpaceShips:ships COMMA planetProduction:production COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetSpaceShips:ships COMMA planetName:name COMMA planetProduction:production COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetSpaceShips:ships COMMA planetProduction:production COMMA planetName:name COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetSpaceShips:ships COMMA planetProduction:production COMMA planetDeathRate:deathRate COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetName:name COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetDeathRate:deathRate COMMA planetName:name COMMA planetSpaceShips:ships COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetProduction:production COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetName:name COMMA planetDeathRate:deathRate COMMA planetProduction:production COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetDeathRate:deathRate COMMA planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetDeathRate:deathRate COMMA planetProduction:production COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
+                            | planetDeathRate:deathRate COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), false, false);:}
                             ;
 
-planetName::=   NAME COLON NAMEPLANET
+planetName::=   NAME COLON NAMEPLANET:name {:RESULT = name.replace("\"", "");:}
                 ;
 
-planetSpaceShips::=     SPACESHIPS COLON INTEGER
+planetSpaceShips::=     SPACESHIPS COLON INTEGER:amount {:RESULT = amount;:}
                         ;
 
-planetProduction::=     PRODUCTION COLON INTEGER
+planetProduction::=     PRODUCTION COLON INTEGER:amount {:RESULT = amount;:}
                         ;
 
-planetDeathRate::=      DEATHRATE COLON DOUBLE
+planetDeathRate::=      DEATHRATE COLON DOUBLE:amount {:RESULT = amount;:}
                         ;
-
 
 /*-------------------------------------------------------ESTRUCTURA PLANETAS_NEUTRALES-------------------------------------------------------*/
 
@@ -213,13 +215,36 @@ neutralPlanetsDescription::=    CURLYBRACKETO neutralPlanetRulesSelector CURLYBR
                                 | CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC
                                 ;
 
-neutralPlanetRulesSelector::=   planetName COMMA planetSpaceShips COMMA planetDeathRate
-                                | planetName COMMA planetDeathRate COMMA planetSpaceShips
-                                | planetSpaceShips COMMA planetName COMMA planetDeathRate
-                                | planetSpaceShips COMMA planetDeathRate COMMA planetName
-                                | planetDeathRate COMMA planetName COMMA planetSpaceShips
-                                | planetDeathRate COMMA planetSpaceShips COMMA planetName
-                                | planetRulesSelector
+neutralPlanetRulesSelector::=   planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetProduction:production COMMA planetName:name COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetProduction:production COMMA planetSpaceShips:ships COMMA planetName:name COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetName:name COMMA planetProduction:production COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetProduction:production COMMA planetName:name COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetProduction:production COMMA planetDeathRate:deathRate COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetProduction:production COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetName:name COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetSpaceShips:ships COMMA planetName:name COMMA planetDeathRate:deathRate COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetName:name COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetProduction:production COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetName:name COMMA planetSpaceShips:ships COMMA planetProduction:production COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetSpaceShips:ships COMMA planetName:name COMMA planetProduction:production COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetSpaceShips:ships COMMA planetProduction:production COMMA planetName:name COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetSpaceShips:ships COMMA planetProduction:production COMMA planetDeathRate:deathRate COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetName:name COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetDeathRate:deathRate COMMA planetName:name COMMA planetSpaceShips:ships COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name COMMA planetProduction:production {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetProduction:production COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetName:name COMMA planetDeathRate:deathRate COMMA planetProduction:production COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetDeathRate:deathRate COMMA planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetDeathRate:deathRate COMMA planetProduction:production COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetDeathRate:deathRate COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), Integer.parseInt(production.toString()), Double.parseDouble(deathRate.toString()), true, false);:}
+                                | planetName:name COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);:}
+                                | planetName:name COMMA planetDeathRate:deathRate COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);:}
+                                | planetSpaceShips:ships COMMA planetName:name COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);:}
+                                | planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);:}
+                                | planetDeathRate:deathRate COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);:}
+                                | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);:}
                                 ;
 
 /*-------------------------------------------------------ESTRUCTURA JUGADORES-------------------------------------------------------*/
@@ -231,32 +256,32 @@ playersDescription::=   CURLYBRACKETO playerRulesSelector CURLYBRACKETC COMMA pl
                         | CURLYBRACKETO playerRulesSelector CURLYBRACKETC
                        ;
 
-playerRulesSelector::=    playerPlanets COMMA playerName COMMA playerType
-                          | playerPlanets COMMA playerType COMMA playerName
-                          | playerName COMMA playerPlanets COMMA playerType
-                          | playerName COMMA playerType COMMA playerPlanets
-                          | playerType COMMA playerName COMMA playerPlanets
-                          | playerType COMMA playerPlanets COMMA playerName
+playerRulesSelector::=    playerPlanets:planets COMMA playerName:name COMMA playerType:type {:mapConfigFileDriver.createPlayer(name.toString(), planets.toString(), type.toString());:}
+                          | playerPlanets:planets COMMA playerType:type COMMA playerName:name {:mapConfigFileDriver.createPlayer(name.toString(), planets.toString(), type.toString());:}
+                          | playerName:name COMMA playerPlanets:planets COMMA playerType:type {:mapConfigFileDriver.createPlayer(name.toString(), planets.toString(), type.toString());:}
+                          | playerName:name COMMA playerType:type COMMA playerPlanets:planets {:mapConfigFileDriver.createPlayer(name.toString(), planets.toString(), type.toString());:}
+                          | playerType:type COMMA playerName:name COMMA playerPlanets:planets {:mapConfigFileDriver.createPlayer(name.toString(), planets.toString(), type.toString());:}
+                          | playerType:type COMMA playerPlanets:planets COMMA playerName:name {:mapConfigFileDriver.createPlayer(name.toString(), planets.toString(), type.toString());:}
                           ;
 
-playerName::=   NAME COLON name
+playerName::=   NAME COLON name:name {:RESULT = name;:}
                 ;
 
-name::=     NAMEPLANET
-            | NAMEPLAYER
+name::=     NAMEPLANET:name {:RESULT = name.replace("\"", "");:}
+            | NAMEPLAYER:name {:RESULT = name.replace("\"", "");:}
             ;
 
-playerPlanets::=   PLAYERPLANETS COLON SQUAREBRACKETO planetsName SQUAREBRACKETC
+playerPlanets::=   PLAYERPLANETS COLON SQUAREBRACKETO planetsName:planets {:RESULT = planets;:} SQUAREBRACKETC
                    ;
 
-planetsName::=   NAMEPLANET COMMA planetsName
-                | NAMEPLANET
+planetsName::=   NAMEPLANET:planet COMMA planetsName:planets {:RESULT = planet.replace("\"", "") +"|"+planets;:}
+                | NAMEPLANET:planet {:RESULT = planet.replace("\"", "");:}
                 ;
 
-playerType::=   TYPE COLON type
+playerType::=   TYPE COLON type:type {:RESULT = type;:}
                 ;
 
-type::=     HUMAN
-            | EASY
-            | HARD
+type::=     HUMAN:type {:RESULT = type;:}
+            | EASY:type {:RESULT = type;:}
+            | HARD:type {:RESULT = type;:}
             ;
