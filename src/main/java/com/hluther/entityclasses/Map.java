@@ -19,6 +19,9 @@ public class Map {
     private boolean accumulate;
     private int completion;
 
+    public Map() {
+    }
+
     public Map(String name, int rows, int columns, boolean showSpaceShips, boolean showStatistics, int production, boolean random, int neutralPlanets, boolean blindMap, boolean accumulate, int completion) {
         this.name = name;
         this.rows = rows;

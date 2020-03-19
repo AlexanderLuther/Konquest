@@ -22,7 +22,7 @@ public class MapConfigFileDriver {
     private Map map;
     private String msg;
     private boolean dataExist = false;
-    
+
     /*
     Metodo encargado de crear una nueva instancia de la clase Planet. Recibe como parametros todos los atributos de la nueva
     instancia. Por ultimo agrega a la lista planets el objeto creado.
@@ -72,8 +72,8 @@ public class MapConfigFileDriver {
         String name = "";
         int rows = -1;
         int columns = -1;
-        boolean showSpaceShips = true;
-        boolean showStatistics = true;
+        boolean showSpaceShips = false;
+        boolean showStatistics = false;
         int production = -1;
         boolean random = false;
         int neutralPlanets = -1;
@@ -117,7 +117,35 @@ public class MapConfigFileDriver {
                 break;    
             }
         }
+        this.setErrors(name, rows, columns, production, neutralPlanets, random);    
         map = new Map(name, rows, columns, showSpaceShips, showStatistics, production, random, neutralPlanets, blindMap, accumulate, completion);
+    }
+    
+    /*
+    Metodo encargado de verificar que los elementos obligatorios del archivo de entrada existan, de lo contrario crea un mensaje de error
+    y lo almacena en la lista messages.
+    */
+    private void setErrors(String name, int rows, int columns, int production, int neutralPlanets, boolean random){
+        if(name.equals("")){
+            msg = "No se especifico un nombre para el mapa.";
+            messages.add(msg);
+        }
+        if(rows == -1){
+            msg = "No se especifico la cantidad de filas del mapa.";
+            messages.add(msg);
+        }
+        if(columns == -1){
+            msg = "No se especifico la cantidad de columnas del mapa.";
+            messages.add(msg);
+        }
+        if(production == -1){
+            msg = "No se especifico la cantidad de produccion para los planetas neutrales.";
+            messages.add(msg);
+        }
+        if(random == true && neutralPlanets == -1){
+            msg = "No se especifico la cantidad de planetas neutrales a crear.";
+            messages.add(msg);
+        }
     }
     
     public List<Planet> getPlanets() {
