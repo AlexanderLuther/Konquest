@@ -95,5 +95,29 @@ public class GameSettingsDriver {
         map.setProduction(Integer.parseInt(production.getValue().toString()));
         return map;
     }
+    
+    /*
+    Metodo encargado de establecer la produccion inicial de los planetas neutrales.
+    Itera por cada elemento  de la lista planets y se valida si el planeta es neutral, de ser asi si su produccion es -1 se modifica 
+    determinando si el valor del atributo production de la instancia map es o no -1, si no es -1, se modifica dandole el valor  
+    contenido dentro del atributo production de la instancia map. Si es valor si es -1 se establece el valor de production en 0.
+    */
+    public List<Planet> setInitialProduction(List<Planet> planets, Map map){    
+        for(int i = 0; i < planets.size(); i++){
+            if(planets.get(i).isNeutral()){
+                if(planets.get(i).getProduction() == -1){
+                    if(map.getProduction() != -1){                     
+                        planets.get(i).setProduction(map.getProduction());
+                    }
+                    else{
+                        planets.get(i).setProduction(0);
+                    }
+
+                }   
+            }
+        }
+        return planets;
+    }
+    
         
 }

@@ -2454,7 +2454,7 @@ class CUP$MapConfigFileParser$actions {
 		int deathRateleft = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).left;
 		int deathRateright = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).right;
 		Object deathRate = (Object)((java_cup.runtime.Symbol) CUP$MapConfigFileParser$stack.peek()).value;
-		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);
+		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), -1, Double.parseDouble(deathRate.toString()), true, true);
               CUP$MapConfigFileParser$result = parser.getSymbolFactory().newSymbol("neutralPlanetRulesSelector",19, ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.elementAt(CUP$MapConfigFileParser$top-4)), ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()), RESULT);
             }
           return CUP$MapConfigFileParser$result;
@@ -2472,7 +2472,7 @@ class CUP$MapConfigFileParser$actions {
 		int shipsleft = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).left;
 		int shipsright = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).right;
 		Object ships = (Object)((java_cup.runtime.Symbol) CUP$MapConfigFileParser$stack.peek()).value;
-		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);
+		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), -1, Double.parseDouble(deathRate.toString()), true, true);
               CUP$MapConfigFileParser$result = parser.getSymbolFactory().newSymbol("neutralPlanetRulesSelector",19, ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.elementAt(CUP$MapConfigFileParser$top-4)), ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()), RESULT);
             }
           return CUP$MapConfigFileParser$result;
@@ -2490,7 +2490,7 @@ class CUP$MapConfigFileParser$actions {
 		int deathRateleft = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).left;
 		int deathRateright = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).right;
 		Object deathRate = (Object)((java_cup.runtime.Symbol) CUP$MapConfigFileParser$stack.peek()).value;
-		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);
+		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), -1, Double.parseDouble(deathRate.toString()), true, true);
               CUP$MapConfigFileParser$result = parser.getSymbolFactory().newSymbol("neutralPlanetRulesSelector",19, ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.elementAt(CUP$MapConfigFileParser$top-4)), ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()), RESULT);
             }
           return CUP$MapConfigFileParser$result;
@@ -2508,7 +2508,7 @@ class CUP$MapConfigFileParser$actions {
 		int nameleft = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).left;
 		int nameright = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).right;
 		Object name = (Object)((java_cup.runtime.Symbol) CUP$MapConfigFileParser$stack.peek()).value;
-		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);
+		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), -1, Double.parseDouble(deathRate.toString()), true, true);
               CUP$MapConfigFileParser$result = parser.getSymbolFactory().newSymbol("neutralPlanetRulesSelector",19, ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.elementAt(CUP$MapConfigFileParser$top-4)), ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()), RESULT);
             }
           return CUP$MapConfigFileParser$result;
@@ -2526,7 +2526,7 @@ class CUP$MapConfigFileParser$actions {
 		int shipsleft = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).left;
 		int shipsright = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).right;
 		Object ships = (Object)((java_cup.runtime.Symbol) CUP$MapConfigFileParser$stack.peek()).value;
-		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);
+		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), -1, Double.parseDouble(deathRate.toString()), true, true);
               CUP$MapConfigFileParser$result = parser.getSymbolFactory().newSymbol("neutralPlanetRulesSelector",19, ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.elementAt(CUP$MapConfigFileParser$top-4)), ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()), RESULT);
             }
           return CUP$MapConfigFileParser$result;
@@ -2544,7 +2544,7 @@ class CUP$MapConfigFileParser$actions {
 		int nameleft = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).left;
 		int nameright = ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()).right;
 		Object name = (Object)((java_cup.runtime.Symbol) CUP$MapConfigFileParser$stack.peek()).value;
-		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), 0, Double.parseDouble(deathRate.toString()), true, true);
+		mapConfigFileDriver.createPlanet(name.toString(), Integer.parseInt(ships.toString()), -1, Double.parseDouble(deathRate.toString()), true, true);
               CUP$MapConfigFileParser$result = parser.getSymbolFactory().newSymbol("neutralPlanetRulesSelector",19, ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.elementAt(CUP$MapConfigFileParser$top-4)), ((java_cup.runtime.Symbol)CUP$MapConfigFileParser$stack.peek()), RESULT);
             }
           return CUP$MapConfigFileParser$result;
