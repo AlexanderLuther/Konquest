@@ -1,5 +1,5 @@
 package com.hluther.entityclasses;
-
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,13 +13,13 @@ public class Player {
     private List<Planet> planets = new ArrayList<Planet>();
     private String planetsName;
     private String type;
-
+    private Color color;
+    
     public Player(String name, String planetsName, String type) {
         this.name = name;
         this.planetsName = planetsName;
         this.type = type;
-    }
-    
+     }
     
     public String getName() {
         return name;
@@ -52,5 +52,13 @@ public class Player {
     public void setPlanetsName(String planetsName) {
         this.planetsName = planetsName;
     }
-    
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
 }

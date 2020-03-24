@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author helmuth
  */
-public class MapConfigFileDriver {
+public class MapConfigFile {
     
     private List<Planet> planets = new ArrayList<Planet>();
     private List<Player> players = new ArrayList<Player>();

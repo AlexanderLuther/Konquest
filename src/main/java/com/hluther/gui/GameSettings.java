@@ -1,6 +1,8 @@
 package com.hluther.gui;
 
-import com.hluther.drivers.GameSettingsDriver;
+import com.hluther.drivers.MapSettings;
+import com.hluther.drivers.PlanetsSettings;
+import com.hluther.drivers.PlayersSettings;
 import com.hluther.entityclasses.Map;
 import com.hluther.entityclasses.Planet;
 import com.hluther.entityclasses.Player;
@@ -9,6 +11,7 @@ import java.util.List;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
@@ -22,46 +25,65 @@ public class GameSettings extends javax.swing.JDialog {
     private List<Player> players = new ArrayList<>();
     private List<Planet> planets = new ArrayList<Planet>();
     private List<String> messages = new ArrayList<String>();
-    private GameSettingsDriver gameSettingsDriver  = new GameSettingsDriver();
+    private PlanetsSettings planetsSettings = new PlanetsSettings();
+    private PlayersSettings playersSettings = new PlayersSettings();
+    private MapSettings mapSettings = new MapSettings();
     private FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON","json");
     private DefaultTableModel playersTableModel = new DefaultTableModel();
     private DefaultTableModel planetsTableModel = new DefaultTableModel();
     private static String[] items = {"HUMANO","FACIL","DIFICIL"};
     private JComboBox<String> playersComboBox = new JComboBox<>(items);
+    private JLabel playerColor = new JLabel();
     private JComboBox<String> planetsComboBox;
     private Konquest konquestFrame;
     private Map map = new Map();
-    private Player player;
     private JFileChooser fileChooser;
     private boolean cancelled = false;
     private int playersCounter = 1;
-    private String owner;
+    private int planetsCounter = 1;
+    private boolean startGame = false;
         
     public GameSettings(Konquest konquetsFrame, boolean modal) {
         super(konquetsFrame, modal);
-        this.konquestFrame = konquetsFrame;
+        konquestFrame = konquetsFrame;
         initComponents();
-        this.initializePlayersTable();
-        this.initializePlanetsTable();
+        initializePlayersTable();
+        initializePlanetsTable();
         this.setLocationRelativeTo(konquetsFrame);
         completionSpinner.setEnabled(false);
         neutralPlanetsSpinner.setEnabled(false);
+        playerColor.setOpaque(true);
+    }
+
+    public List<Player> getPlayers() {
+        return players;
+    }
+
+    public List<Planet> getPlanets() {
+        return planets;
+    }
+
+    public Map getMap() {
+        return map;
+    }
+    
+    public boolean isStartGame(){
+        return startGame;
     }
     
     //Metodo encargado de inicializar el area de jugadores
     public void initializePlayersArea(){
-        this.clearPlayersTable();
-        this.fillPlayersTable();
+        clearPlayersTable();
+        fillPlayersTable();
     }
     
     //Metodo encargado de inicializar el area de planetas
-    public void initializePlanetsArea(){
-        this.initPlanetsComboBox();
-        this.clearPlanetsTable();
-        this.fillPlanetsTable();
+    public void initializePlanetsArea(boolean setOwners){
+        initPlanetsComboBox();
+        clearPlanetsTable();
+        fillPlanetsTable(setOwners);
     }
-    
-    
+       
     //Metodo encargado de inicializar el area de mapa
     public void initializeMapArea(){
         idTextField.setText(map.getName());          
@@ -90,22 +112,23 @@ public class GameSettings extends javax.swing.JDialog {
     public void getLists(){
         map = konquestFrame.getMapConfigFileDriver().getMap();
         players = konquestFrame.getMapConfigFileDriver().getPlayers();
-        planets = gameSettingsDriver.setInitialProduction(konquestFrame.getMapConfigFileDriver().getPlanets(), map);
+        planets = planetsSettings.setInitialProduction(konquestFrame.getMapConfigFileDriver().getPlanets(), map.getProduction());
         messages = konquestFrame.getMapConfigFileDriver().getMessages();
     }
     
 //----------------------------------------Tabla de Jugadores----------------------------------------//   
     //Metodo encargado de establecer las cabeceras y el modelo de la table de jugadores.
     private void initializePlayersTable(){
-        this.playersTableModel.setColumnIdentifiers(new String[]{"Nombre", "Tipo"}); 
-        this.playersTable.setModel(playersTableModel);
+        playersTable.setDefaultRenderer(Object.class, new TableRenderer());
+        playersTableModel.setColumnIdentifiers(new String[]{"Color", "Nombre", "Tipo"});    
+        playersTable.setModel(playersTableModel);
     }
     
     //Metodo encargado de llenar la tabla de jugadores.
     public void fillPlayersTable(){    
-        for(int i = 0; i < players.size(); i++){       
-            playersTableModel.addRow(new Object[]{players.get(i).getName(), players.get(i).getType()});
-            setComboBox(playersTable.getColumnModel().getColumn(1));
+        for(int i = 0; i < players.size(); i++){  
+            playersTableModel.addRow(new Object[]{playerColor, players.get(i).getName(), players.get(i).getType()});
+            setComboBox(playersTable.getColumnModel().getColumn(2));
         }
     }
     
@@ -126,35 +149,26 @@ public class GameSettings extends javax.swing.JDialog {
     
     //Metodo encargado de agregar un jugador.
     private void addPlayer(String type){
-        playersCounter = this.gameSettingsDriver.addPlayer(players, type, playersCounter);
-        this.initializePlayersArea();
-        this.initPlanetsComboBox();
-        this.initializePlanetsArea();
+        playersCounter = playersSettings.addPlayer(players, type, playersCounter);
+        initializePlayersArea();
+        initPlanetsComboBox();
+        initializePlanetsArea(false);
     }
    
 //----------------------------------------Tabla de Planetas----------------------------------------//   
     //Metodo encargado de establecer las cabeceras y el modelo de la table de jugadores.
     private void initializePlanetsTable(){
-        this.planetsTableModel.setColumnIdentifiers(new String[]{"Nombre", "Naves", "Propietario", "Produccion", "Porcentaje de Muertes"}); 
-        this.planetsTable.setModel(planetsTableModel);
+        planetsTableModel.setColumnIdentifiers(new String[]{"Nombre", "Naves", "Propietario", "Produccion", "Porcentaje de Muertes"}); 
+        planetsTable.setModel(planetsTableModel);
     }
     
     //Metodo encargado de llenar la tabla de jugadores.
-    public void fillPlanetsTable(){  
-        for(int i = 0; i < planets.size(); i++){
-            owner = "Neutral";
-            //Itera por cada uno de los jugadores
-            for(int j = 0; j < players.size(); j++){
-                //Obtiene los nombres de los planetas que le pertenecen al jugador.
-                String[] planetName = players.get(j).getPlanetsName().split("|");
-                //Itera por cada nombre de planeta y lo compara con el nombre del planete actual
-                for(int k = 0; k < planetName.length; k++){
-                    if(planetName[k].equals(planets.get(i).getName())){
-                        owner = players.get(j).getName();
-                    }
-                }       
+    public void fillPlanetsTable(boolean setOwners){  
+        for(int i = 0; i < planets.size(); i++){  
+            if(setOwners){
+                planetsSettings.setInitialOwner(planets.get(i), players);
             }
-            planetsTableModel.addRow(new Object[]{planets.get(i).getName(), planets.get(i).getSpaceShips(), owner , planets.get(i).getProduction(), planets.get(i).getDeathRate()});
+            planetsTableModel.addRow(new Object[]{planets.get(i).getName(), planets.get(i).getSpaceShips(), planets.get(i).getOwner() , planets.get(i).getProduction(), planets.get(i).getDeathRate()});
             setComboBoxPlanets(planetsTable.getColumnModel().getColumn(2));
         }
     }
@@ -185,8 +199,8 @@ public class GameSettings extends javax.swing.JDialog {
         }
         items[0] = "Neutral";
         planetsComboBox  = new JComboBox<>(items);
-    }  
-    
+    }
+       
 //----------------------------------------Area de Errores----------------------------------------//
     //Metodo encargado de insertar en el textArea messagesArea todos los elementos contenidos dentro de la lista messages.
     private void showMessages(){
@@ -360,6 +374,7 @@ public class GameSettings extends javax.swing.JDialog {
                 {null, null, null, null},
                 {null, null, null, null},
                 {null, null, null, null},
+                {null, null, null, null},
                 {null, null, null, null}
             },
             new String [] {
@@ -398,6 +413,11 @@ public class GameSettings extends javax.swing.JDialog {
         addPlanet.setFont(new java.awt.Font("Serif", 0, 13)); // NOI18N
         addPlanet.setForeground(new java.awt.Color(0, 51, 102));
         addPlanet.setText("Agregar");
+        addPlanet.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addPlanetActionPerformed(evt);
+            }
+        });
         jPanel5.add(addPlanet, new java.awt.GridBagConstraints());
 
         jLabel17.setText("      ");
@@ -406,6 +426,11 @@ public class GameSettings extends javax.swing.JDialog {
         deletePlanet.setFont(new java.awt.Font("Serif", 0, 13)); // NOI18N
         deletePlanet.setForeground(new java.awt.Color(0, 51, 102));
         deletePlanet.setText("Eliminar");
+        deletePlanet.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deletePlanetActionPerformed(evt);
+            }
+        });
         jPanel5.add(deletePlanet, new java.awt.GridBagConstraints());
 
         jPanel2.add(jPanel5, java.awt.BorderLayout.PAGE_END);
@@ -433,6 +458,11 @@ public class GameSettings extends javax.swing.JDialog {
                 "Title 1", "Title 2", "Title 3", "Title 4"
             }
         ));
+        planetsTable.addPropertyChangeListener(new java.beans.PropertyChangeListener() {
+            public void propertyChange(java.beans.PropertyChangeEvent evt) {
+                planetsTablePropertyChange(evt);
+            }
+        });
         jScrollPane3.setViewportView(planetsTable);
 
         jPanel8.add(jScrollPane3, java.awt.BorderLayout.CENTER);
@@ -539,6 +569,7 @@ public class GameSettings extends javax.swing.JDialog {
         jPanel25.add(jLabel14, java.awt.BorderLayout.LINE_START);
 
         neutralPlanetsSpinner.setFont(new java.awt.Font("Serif", 0, 14)); // NOI18N
+        neutralPlanetsSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
         jPanel25.add(neutralPlanetsSpinner, java.awt.BorderLayout.CENTER);
 
         jPanel12.add(jPanel25);
@@ -602,8 +633,10 @@ public class GameSettings extends javax.swing.JDialog {
         jPanel10.add(jPanel22, java.awt.BorderLayout.LINE_START);
 
         columnsSpinner.setFont(new java.awt.Font("Serif", 0, 14)); // NOI18N
+        columnsSpinner.setModel(new javax.swing.SpinnerNumberModel(4, 4, 25, 1));
 
         completionSpinner.setFont(new java.awt.Font("Serif", 0, 14)); // NOI18N
+        completionSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
 
         javax.swing.GroupLayout jPanel23Layout = new javax.swing.GroupLayout(jPanel23);
         jPanel23.setLayout(jPanel23Layout);
@@ -652,6 +685,7 @@ public class GameSettings extends javax.swing.JDialog {
         idTextField.setForeground(new java.awt.Color(102, 0, 255));
 
         rowsSpinner.setFont(new java.awt.Font("Serif", 0, 14)); // NOI18N
+        rowsSpinner.setModel(new javax.swing.SpinnerNumberModel(4, 4, 25, 1));
 
         javax.swing.GroupLayout jPanel18Layout = new javax.swing.GroupLayout(jPanel18);
         jPanel18.setLayout(jPanel18Layout);
@@ -772,7 +806,7 @@ public class GameSettings extends javax.swing.JDialog {
     */
     private void addButtonPopupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent evt) {//GEN-FIRST:event_addButtonPopupMenuWillBecomeInvisible
         if(!cancelled){
-            this.addPlayer(addButton.getSelectedItem().toString());
+            addPlayer(addButton.getSelectedItem().toString());
         }
         addButton.removeAllItems();
         addButton.addItem("Agregar");
@@ -791,13 +825,10 @@ public class GameSettings extends javax.swing.JDialog {
                 
                 getLists();
                 initializePlayersArea();
-                initializePlanetsArea();
+                initializePlanetsArea(true);
                 initializeMapArea();
                 showMessages();
-                
-                
-                
-                //-----------------------------------------     
+                 
             }
         catch(NullPointerException e){
         }
@@ -805,10 +836,18 @@ public class GameSettings extends javax.swing.JDialog {
     
     //Metodo encargado de eliminar un jugador.
     private void deletePlayerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePlayerActionPerformed
-        gameSettingsDriver.deletePlayer(playersTable, players);
-        this.initializePlayersArea();
-        this.initPlanetsComboBox();
-        this.initializePlanetsArea();
+        if(playersTable.getSelectedRow() == -1){
+            if (!(playersTable.getRowCount() <= 0)){
+                planetsSettings.removeDeletedOwner(planets, players.get(players.size() - 1).getName());
+            } 
+        }
+        else{
+            planetsSettings.removeDeletedOwner(planets, players.get(playersTable.getSelectedRow()).getName());
+        }
+        playersSettings.deletePlayer(playersTable, players);
+        initializePlayersArea();
+        initPlanetsComboBox();
+        initializePlanetsArea(false);
     }//GEN-LAST:event_deletePlayerActionPerformed
 
     //Metodo encargado de establecer el valor booleano de cancelled en true.
@@ -819,8 +858,8 @@ public class GameSettings extends javax.swing.JDialog {
     //Metodo encargado de actualizar los datos de un jugador
     private void playersTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_playersTablePropertyChange
         if (playersTable.getSelectedRow() != -1){
-            gameSettingsDriver.updatePlayer(playersTableModel, playersTable, players);
-            this.initializePlayersArea();
+            playersSettings.updatePlayer(playersTableModel, playersTable, players);
+            initializePlayersArea();
         }
     }//GEN-LAST:event_playersTablePropertyChange
 
@@ -848,15 +887,74 @@ public class GameSettings extends javax.swing.JDialog {
        }
     }//GEN-LAST:event_randomCheckBoxItemStateChanged
 
+    /*
+    Metodo encargado de realizar las validaciones necesarias para poder comenzar con el juego.
+        1. Valida que el nombre del mapa no se encuentre vacio y sea valido. Si no es valido lanza un mensaje
+           indicando el error, caso contrario actualiza todos los datos del mapa y procede a la siguiente validacion.
+        2. Valida que la cantidad de panetas no sea mayor a la cantidad de espacios disponibles. Si la validacion
+           se realiza exitosamente procede con la siguiente validacion, caso contrario lanza un mensaje indicando
+           el error.
+        3. Valida que existan 2 jugadores como minimo para empezar el juego. Si no es asi lanza un mensaje indicando
+           el error.
+        4. Valida que todos los jugadores tengan asignado por lo menos un planeta. Si la validacion se realiza exitosamente
+           se limpian todos los registros creados durante la validacion y se procede a asignar a los jugadores todos los 
+           planetas de los que es propietario. Por ultimo se cierra la ventana actual. Caso contrario se lanza un mensaje 
+           indicando el error.
+    */
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
+        //------------------------  1   ------------------------   
         if(idTextField.getText().isBlank()){
             JOptionPane.showMessageDialog(this, "Nombre del mapa no valido", "Error", 0);
         }
         else{
-            this.map = gameSettingsDriver.updateMap(map, idTextField, rowsSpinner, columnsSpinner, completionSpinner, neutralPlanetsSpinner, productionSpinner, completionCheckBox, accumulateCheckBox, blindMapCheckBox, randomCheckBox, showSpaceShipsCheckBox, showStatisticsCheckBox);
+            map = mapSettings.updateMap(map, idTextField, rowsSpinner, columnsSpinner, completionSpinner, neutralPlanetsSpinner, productionSpinner, completionCheckBox, accumulateCheckBox, blindMapCheckBox, randomCheckBox, showSpaceShipsCheckBox, showStatisticsCheckBox);
+            //------------------------  2   ------------------------   
+            if(mapSettings.validateIntegrity(map.getRows(), map.getColumns(), planets.size())){
+                //------------------------  3   ------------------------   
+                if(players.size() < 2){
+                    JOptionPane.showMessageDialog(this, "Se requieren al menos 2 jugadores para iniciar una partida", "Error", 0);
+                }
+                else{
+                    //------------------------  4   ------------------------   
+                    if(!playersSettings.verifyPlanets(planets, players)){  
+                        for(int i = 0; i < players.size(); i++){
+                            players.get(i).getPlanets().clear();
+                        }
+                        playersSettings.assignPlanets(planets, players);
+                        playersSettings.assignColors(players);
+                        startGame = true;
+                        this.dispose();
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(this, "Cada jugador debe de tener por lo menos 1 planeta propio.", "Error", 0);
+                    }   
+                }
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "La cantidad de planetas supera la cantidad de cuadros disponibles.", "Error", 0);
+            }
         }        
-        
     }//GEN-LAST:event_playButtonActionPerformed
+
+    //Metodo encargado de agregar un planeta.
+    private void addPlanetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addPlanetActionPerformed
+        planetsCounter = planetsSettings.addPlanet(planets, planetsCounter);
+        initializePlanetsArea(false);
+    }//GEN-LAST:event_addPlanetActionPerformed
+
+    //Metodo encargado de eliminar un planeta
+    private void deletePlanetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_deletePlanetActionPerformed
+        planetsSettings.deletePlanet(planetsTable, planets);
+        initializePlanetsArea(false);
+    }//GEN-LAST:event_deletePlanetActionPerformed
+
+    //Metodo encargado de modificar un planeta.
+    private void planetsTablePropertyChange(java.beans.PropertyChangeEvent evt) {//GEN-FIRST:event_planetsTablePropertyChange
+        if (planetsTable.getSelectedRow() != -1){
+            planetsSettings.updatePlanet(planetsTableModel, planetsTable, planets);
+            initializePlanetsArea(false);
+        }
+    }//GEN-LAST:event_planetsTablePropertyChange
 
     /**
      * @param args the command line arguments

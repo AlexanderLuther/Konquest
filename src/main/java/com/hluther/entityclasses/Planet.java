@@ -7,8 +7,11 @@ package com.hluther.entityclasses;
 public class Planet {
 
     private String name;
+    private String owner;
     private int spaceShips;
     private int production;
+    private int x;
+    private int y;
     private double deathRate;
     private boolean neutral;
     private boolean generalProduction;
@@ -69,7 +72,29 @@ public class Planet {
     public void setGeneralProduction(boolean generalProduction) {
         this.generalProduction = generalProduction;
     }
-    
-    
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
+    }
     
 }

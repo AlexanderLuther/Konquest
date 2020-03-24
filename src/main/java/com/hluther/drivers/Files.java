@@ -10,7 +10,7 @@ import java.io.IOException;
  *
  * @author helmuth
  */
-public class FilesDriver {
+public class Files {
 
     private BufferedReader bufferReader;
     private String data;

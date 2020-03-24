@@ -8,7 +8,7 @@ package com.hluther.parser;
 import java_cup.runtime.*;
 import com.hluther.gui.Konquest;
 import com.hluther.lexer.MapConfigFileLexer;
-import com.hluther.drivers.MapConfigFileDriver;
+import com.hluther.drivers.MapConfigFile;
 import java_cup.runtime.XMLElement;
 
 /** CUP v0.11b 20160615 (GIT 4ac7450) generated parser.
@@ -613,7 +613,7 @@ public class MapConfigFileParser extends java_cup.runtime.lr_parser {
 
 
     private Konquest konquestFrame;
-    private MapConfigFileDriver mapConfigFileDriver;
+    private MapConfigFile mapConfigFileDriver;
   
     public MapConfigFileParser(MapConfigFileLexer lexer, Konquest konquestFrame) { 
         super(lexer);

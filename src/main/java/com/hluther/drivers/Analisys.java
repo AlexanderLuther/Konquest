@@ -9,7 +9,7 @@ import java.io.StringReader;
  *
  * @author helmuth
  */
-public class AnalisysDriver {
+public class Analisys {
     
     public void doMapConfigFileAnalysis(String text, Konquest konquestFrame){
         try { 
