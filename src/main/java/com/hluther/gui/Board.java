@@ -22,6 +22,7 @@ public class Board extends JPanel{
     private List<Player> players;
     private List<Planet> neutralPlanets;
     private Map map;
+    private Square selectedSquare;
     
     /*
     Constructor de la clase.
@@ -41,6 +42,15 @@ public class Board extends JPanel{
 
     public Map getMap() {
         return map;
+    }
+    
+    public Square getSelectedSquare(){
+        return selectedSquare;
+    }
+    
+    public void setSelectedSquare(Square selectedSquare){
+        this.selectedSquare = selectedSquare;
+        konquest.setSelectedSquare(selectedSquare);
     }
     
     /*

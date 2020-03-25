@@ -2,14 +2,18 @@ package com.hluther.gui;
 
 import com.hluther.drivers.Analisys;
 import com.hluther.drivers.Files;
+import com.hluther.drivers.GameActions;
 import com.hluther.drivers.MapConfigFile;
+import com.hluther.drivers.Turn;
 import com.hluther.entityclasses.Map;
 import com.hluther.entityclasses.Planet;
 import com.hluther.entityclasses.Player;
+import java.awt.Color;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.JOptionPane;
 /**
  *
  * @author helmuth
@@ -18,6 +22,8 @@ public class Konquest extends javax.swing.JFrame {
     
     private Analisys analisisDriver = new Analisys();
     private MapConfigFile mapConfigFileDriver = new MapConfigFile();
+    private Turn turnsDriver;
+    private GameActions gameActionsDriver;
     private Files filesDriver = new Files();
     private List<Planet> neutralPlanets = new ArrayList<Planet>();
     private List<Player> players = new ArrayList<Player>();
@@ -25,13 +31,20 @@ public class Konquest extends javax.swing.JFrame {
     private GameSettings gameCreator;
     private BackGroundImage backGroundImage;
     private Board board;
+    private Square initialSquare;
+    private Square targetSquare;
+    private String color = "";
+    private int selectedSquareCounter = 0;
+    private boolean endAction = false;
     
+    //----------------------------------------- Constructor de la clase. -----------------------------------------//
     public Konquest() {
         initComponents();
         this.setLocationRelativeTo(null);
         this.setExtendedState(MAXIMIZED_BOTH);
         messagesPane.setVisible(false);
         actionsPane.setVisible(false);
+        optionsBar.setVisible(false);
         spaceShipsAmount.setEditable(false);
         try {
             backGroundImage = new BackGroundImage(ImageIO.read(this.getClass().getResource("/konquestBackGround.jpg")));     
@@ -42,6 +55,7 @@ public class Konquest extends javax.swing.JFrame {
         }
     }
     
+    //----------------------------------------- Getters y Setters de la clase. -----------------------------------------//
     public MapConfigFile getMapConfigFileDriver() {
         return mapConfigFileDriver;
     }
@@ -65,9 +79,40 @@ public class Konquest extends javax.swing.JFrame {
     public Map getMap() {
         return map;
     }
+
+    public void setSelectedSquare(Square selectedSquare) {
+        //Asignar valor a el planeta y modificar el contador
+        switch(selectedSquareCounter){
+            case 1:
+                this.initialSquare = selectedSquare;
+                selectedSquareCounter++;
+            break;
+            case 2:
+                this.targetSquare = selectedSquare;
+                selectedSquareCounter++;
+            break;
+        }
+        
+        //Establecer si se esta midiendo distancia o si se estan enviando naves.
+        if(gameActionsDriver.isMeasureDistance()){
+            switch(selectedSquareCounter){
+                case 2:
+                    printMeasureDistanceMessages(1);
+                break;
+                case 3:
+                    JOptionPane.showMessageDialog(this, "La distancia es de: " + gameActionsDriver.calculateDistance(initialSquare, targetSquare));
+                    printTurnValues();
+                    gameActionsDriver.setMeasureDistance(false);
+                    selectedSquareCounter = 0;
+                break;
+            }           
+        }
+        else if(gameActionsDriver.isSendSpaceShips()){
+        
+        }
+    }
     
-    
-  
+    //----------------------------------------- Metodos de la clase. -----------------------------------------//
     public void startGame(){
         if(board != null){
             boardPanel.remove(board);
@@ -76,12 +121,84 @@ public class Konquest extends javax.swing.JFrame {
         //Hacer visibles las areas de utilidades
         messagesPane.setVisible(true);
         actionsPane.setVisible(true);
+        optionsBar.setVisible(true);
         board = new Board(map.getRows(), map.getColumns(), this);
         boardPanel.add(board);
         this.repaint();
+        
+        turnsDriver = new Turn(players);
+        gameActionsDriver = new GameActions();
+        selectedSquareCounter = 0;
+        verifyCompletion();        
     }
     
- 
+    
+    /*
+    Metodo encargado de verificar si se debe realizar el cambio de turno o finalizar la partida en 
+    base a la cantidad de turnos jugados.
+        1. Valida si el atributo completion de la instancia map es igual a -1.
+            Si es true:
+                Compara si el turno actual es igual al turno de finalizacion.
+                    Si ambos turnos son iguales se procede a finalizar la partida.
+                    Si no son iguales se realiza una llamado al  metodo changeTurn().
+            Si es false:
+                Llama al metodo changeTurn().
+    */
+    private void verifyCompletion(){
+        if(map.getCompletion() != -1){
+            if(turnsDriver.getTurn() == map.getCompletion()){
+                JOptionPane.showMessageDialog(this, "Finalizar juego");
+            }
+            else{
+                changeTurn();
+                setPlayerNameColor();
+                printTurnValues();
+            }
+        }
+        else{
+            changeTurn();
+            setPlayerNameColor();
+            printTurnValues();
+        }
+    }
+     
+    //Metodo encargado de realizar el cambio de turno.
+    private void changeTurn(){
+        turnsDriver.setTurn();
+    }
+    
+    //Metodo encargado de llenar las areas de mensajes correspondientes al turno.
+    private void printTurnValues(){  
+        optionsLabel.setText("<html> <font size =5 color=\""+color+"\">"+turnsDriver.getActualPlayer().getName()+"</font><font color=\"white\">: Selecione una accion. </font></html>");
+        turnLabel.setText("Turno No."+turnsDriver.getTurn());
+    }
+    
+    private void printMeasureDistanceMessages(int type){
+        switch(type){
+            case 0:
+                optionsLabel.setText("<html> <font size =5 color=\""+color+"\">"+turnsDriver.getActualPlayer().getName()+"</font><font color=\"white\">: Selecione el planeta inicial. </font></html>");
+            break;
+            case 1:
+                optionsLabel.setText("<html> <font size =5 color=\""+color+"\">"+turnsDriver.getActualPlayer().getName()+"</font><font color=\"white\">: Selecione el planeta final. </font></html>");
+            break;
+        }
+    
+    }
+    
+    //Metodo encargado de establecer el color del nombre del jugador en turno.
+    private void setPlayerNameColor(){
+        if(turnsDriver.getActualPlayer().getColor() == Color.blue) color = "blue";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.yellow) color = "yellow";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.green) color = "lime";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.red) color = "red";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.orange) color = "orange";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.lightGray) color = "silver";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.cyan) color = "aqua";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.darkGray) color = "gray";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.white) color = "white";
+        else if(turnsDriver.getActualPlayer().getColor() == Color.magenta) color = "fuchsia";
+    }
+    
     
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -90,13 +207,11 @@ public class Konquest extends javax.swing.JFrame {
         jMenuItem2 = new javax.swing.JMenuItem();
         backGroundPanel = new javax.swing.JPanel();
         menuPanel = new javax.swing.JPanel();
-        jToolBar2 = new javax.swing.JToolBar();
-        jButton1 = new javax.swing.JButton();
+        optionsBar = new javax.swing.JToolBar();
+        measureDistanceMenuItem = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jButton6 = new javax.swing.JButton();
+        endTurnMenuItem = new javax.swing.JButton();
         messagesPane = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         turnLabel = new javax.swing.JLabel();
@@ -108,7 +223,7 @@ public class Konquest extends javax.swing.JFrame {
         jPanel4 = new javax.swing.JPanel();
         jPanel5 = new javax.swing.JPanel();
         spaceShipsAmount = new javax.swing.JTextField();
-        endTurnButton = new javax.swing.JButton();
+        cancelActionButton = new javax.swing.JButton();
         panel123 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jPanel3 = new javax.swing.JPanel();
@@ -116,8 +231,7 @@ public class Konquest extends javax.swing.JFrame {
         jMenuBar1 = new javax.swing.JMenuBar();
         game = new javax.swing.JMenu();
         newGame = new javax.swing.JMenuItem();
-        move = new javax.swing.JMenu();
-        jMenuItem1 = new javax.swing.JMenuItem();
+        endGame = new javax.swing.JMenuItem();
 
         jMenuItem2.setText("jMenuItem2");
 
@@ -134,23 +248,28 @@ public class Konquest extends javax.swing.JFrame {
         menuPanel.setPreferredSize(new java.awt.Dimension(2880, 20));
         menuPanel.setLayout(new java.awt.GridLayout(1, 0));
 
-        jToolBar2.setRollover(true);
+        optionsBar.setRollover(true);
 
-        jButton1.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(0, 51, 102));
-        jButton1.setText("Nuevo");
-        jButton1.setActionCommand("");
-        jButton1.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        jButton1.setBorderPainted(false);
-        jButton1.setFocusPainted(false);
-        jButton1.setMaximumSize(new java.awt.Dimension(170, 20));
-        jButton1.setMinimumSize(new java.awt.Dimension(170, 20));
-        jButton1.setPreferredSize(new java.awt.Dimension(170, 20));
-        jToolBar2.add(jButton1);
+        measureDistanceMenuItem.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+        measureDistanceMenuItem.setForeground(new java.awt.Color(0, 51, 102));
+        measureDistanceMenuItem.setText("Medir distancia");
+        measureDistanceMenuItem.setActionCommand("");
+        measureDistanceMenuItem.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        measureDistanceMenuItem.setBorderPainted(false);
+        measureDistanceMenuItem.setFocusPainted(false);
+        measureDistanceMenuItem.setMaximumSize(new java.awt.Dimension(170, 20));
+        measureDistanceMenuItem.setMinimumSize(new java.awt.Dimension(170, 20));
+        measureDistanceMenuItem.setPreferredSize(new java.awt.Dimension(170, 20));
+        measureDistanceMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                measureDistanceMenuItemActionPerformed(evt);
+            }
+        });
+        optionsBar.add(measureDistanceMenuItem);
 
         jButton2.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
         jButton2.setForeground(new java.awt.Color(0, 51, 102));
-        jButton2.setText("Finalizar partida");
+        jButton2.setText("Enviar naves");
         jButton2.setActionCommand("");
         jButton2.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jButton2.setBorderPainted(false);
@@ -158,11 +277,11 @@ public class Konquest extends javax.swing.JFrame {
         jButton2.setMaximumSize(new java.awt.Dimension(150, 20));
         jButton2.setMinimumSize(new java.awt.Dimension(150, 20));
         jButton2.setPreferredSize(new java.awt.Dimension(150, 20));
-        jToolBar2.add(jButton2);
+        optionsBar.add(jButton2);
 
         jButton3.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
         jButton3.setForeground(new java.awt.Color(0, 51, 102));
-        jButton3.setText("Fin del turno");
+        jButton3.setText("Consultar flota");
         jButton3.setActionCommand("");
         jButton3.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         jButton3.setBorderPainted(false);
@@ -170,45 +289,26 @@ public class Konquest extends javax.swing.JFrame {
         jButton3.setMaximumSize(new java.awt.Dimension(150, 20));
         jButton3.setMinimumSize(new java.awt.Dimension(150, 20));
         jButton3.setPreferredSize(new java.awt.Dimension(150, 20));
-        jToolBar2.add(jButton3);
+        optionsBar.add(jButton3);
 
-        jButton4.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
-        jButton4.setForeground(new java.awt.Color(0, 51, 102));
-        jButton4.setText("Medir distancia");
-        jButton4.setActionCommand("");
-        jButton4.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        jButton4.setBorderPainted(false);
-        jButton4.setFocusPainted(false);
-        jButton4.setMaximumSize(new java.awt.Dimension(150, 20));
-        jButton4.setMinimumSize(new java.awt.Dimension(150, 20));
-        jButton4.setPreferredSize(new java.awt.Dimension(150, 20));
-        jToolBar2.add(jButton4);
+        endTurnMenuItem.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+        endTurnMenuItem.setForeground(new java.awt.Color(0, 51, 102));
+        endTurnMenuItem.setText("Fin del turno");
+        endTurnMenuItem.setActionCommand("");
+        endTurnMenuItem.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
+        endTurnMenuItem.setBorderPainted(false);
+        endTurnMenuItem.setFocusPainted(false);
+        endTurnMenuItem.setMaximumSize(new java.awt.Dimension(150, 20));
+        endTurnMenuItem.setMinimumSize(new java.awt.Dimension(150, 20));
+        endTurnMenuItem.setPreferredSize(new java.awt.Dimension(150, 20));
+        endTurnMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                endTurnMenuItemActionPerformed(evt);
+            }
+        });
+        optionsBar.add(endTurnMenuItem);
 
-        jButton5.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
-        jButton5.setForeground(new java.awt.Color(0, 51, 102));
-        jButton5.setText("Mostrar posiciones");
-        jButton5.setActionCommand("");
-        jButton5.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
-        jButton5.setBorderPainted(false);
-        jButton5.setFocusPainted(false);
-        jButton5.setMaximumSize(new java.awt.Dimension(150, 20));
-        jButton5.setMinimumSize(new java.awt.Dimension(150, 20));
-        jButton5.setPreferredSize(new java.awt.Dimension(150, 20));
-        jToolBar2.add(jButton5);
-
-        jButton6.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
-        jButton6.setForeground(new java.awt.Color(0, 51, 102));
-        jButton6.setText("Vista general de la flota");
-        jButton6.setActionCommand("");
-        jButton6.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        jButton6.setBorderPainted(false);
-        jButton6.setFocusPainted(false);
-        jButton6.setMaximumSize(new java.awt.Dimension(190, 20));
-        jButton6.setMinimumSize(new java.awt.Dimension(190, 20));
-        jButton6.setPreferredSize(new java.awt.Dimension(190, 20));
-        jToolBar2.add(jButton6);
-
-        menuPanel.add(jToolBar2);
+        menuPanel.add(optionsBar);
 
         backGroundPanel.add(menuPanel, java.awt.BorderLayout.PAGE_START);
 
@@ -250,7 +350,9 @@ public class Konquest extends javax.swing.JFrame {
         actionsPane.setPreferredSize(new java.awt.Dimension(100, 50));
         actionsPane.setLayout(new java.awt.BorderLayout());
 
-        optionsLabel.setFont(new java.awt.Font("Serif", 0, 13)); // NOI18N
+        optionsLabel.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+        optionsLabel.setForeground(new java.awt.Color(255, 255, 255));
+        optionsLabel.setText("Seleccione una accion");
         optionsLabel.setPreferredSize(new java.awt.Dimension(500, 19));
         actionsPane.add(optionsLabel, java.awt.BorderLayout.LINE_START);
 
@@ -272,16 +374,21 @@ public class Konquest extends javax.swing.JFrame {
         });
         jPanel5.add(spaceShipsAmount);
 
-        endTurnButton.setBackground(new java.awt.Color(0, 0, 0));
-        endTurnButton.setFont(new java.awt.Font("SansSerif", 1, 13)); // NOI18N
-        endTurnButton.setForeground(new java.awt.Color(0, 153, 0));
-        endTurnButton.setText("Terminar Turno");
-        endTurnButton.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 255, 255)));
-        endTurnButton.setBorderPainted(false);
-        endTurnButton.setMinimumSize(new java.awt.Dimension(135, 35));
-        endTurnButton.setOpaque(true);
-        endTurnButton.setPreferredSize(new java.awt.Dimension(135, 35));
-        jPanel5.add(endTurnButton);
+        cancelActionButton.setBackground(new java.awt.Color(0, 0, 0));
+        cancelActionButton.setFont(new java.awt.Font("SansSerif", 1, 13)); // NOI18N
+        cancelActionButton.setForeground(new java.awt.Color(255, 0, 0));
+        cancelActionButton.setText("Cancelar Accion");
+        cancelActionButton.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 255, 255)));
+        cancelActionButton.setBorderPainted(false);
+        cancelActionButton.setMinimumSize(new java.awt.Dimension(135, 35));
+        cancelActionButton.setOpaque(true);
+        cancelActionButton.setPreferredSize(new java.awt.Dimension(135, 35));
+        cancelActionButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cancelActionButtonActionPerformed(evt);
+            }
+        });
+        jPanel5.add(cancelActionButton);
 
         jPanel4.add(jPanel5, java.awt.BorderLayout.LINE_END);
 
@@ -329,19 +436,14 @@ public class Konquest extends javax.swing.JFrame {
         });
         game.add(newGame);
 
+        endGame.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F, java.awt.event.InputEvent.CTRL_MASK));
+        endGame.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 12)); // NOI18N
+        endGame.setForeground(new java.awt.Color(102, 0, 255));
+        endGame.setIcon(new javax.swing.ImageIcon(getClass().getResource("/detener.png"))); // NOI18N
+        endGame.setText("Finalizar Partida");
+        game.add(endGame);
+
         jMenuBar1.add(game);
-
-        move.setForeground(new java.awt.Color(102, 0, 255));
-        move.setText("     Mover     ");
-        move.setFont(new java.awt.Font("Serif", 1, 12)); // NOI18N
-
-        jMenuItem1.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 12)); // NOI18N
-        jMenuItem1.setForeground(new java.awt.Color(102, 0, 255));
-        jMenuItem1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/adelante.png"))); // NOI18N
-        jMenuItem1.setText("Fin del turno");
-        move.add(jMenuItem1);
-
-        jMenuBar1.add(move);
 
         setJMenuBar(jMenuBar1);
 
@@ -363,12 +465,37 @@ public class Konquest extends javax.swing.JFrame {
             startGame();
         }
     }//GEN-LAST:event_newGameActionPerformed
-
+    //Metodo encargado de limitar los caracteres ingresados en un JTextArea a solamente numeros.
     private void spaceShipsAmountKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_spaceShipsAmountKeyTyped
-
         char c = evt.getKeyChar();
-        if(c < '0' || c > '9'){ evt.consume();}        // TODO add your handling code here:
+        if(c < '0' || c > '9') evt.consume(); 
     }//GEN-LAST:event_spaceShipsAmountKeyTyped
+    
+    //Metodo encargado de llamar al metodo printTurnValues().
+    private void cancelActionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelActionButtonActionPerformed
+        selectedSquareCounter = 0;
+        gameActionsDriver.setMeasureDistance(false);
+        gameActionsDriver.setSendSpaceShips(false);
+        printTurnValues();
+    }//GEN-LAST:event_cancelActionButtonActionPerformed
+    /*
+    Metodo encargado de llamar al metodo setMeasureDistance de la clase GameActions y le envia como 
+    parametro el valor booleano true. Llama al metodo printMeasureDistanceMessages enviando como 
+    parametro el valor entero 0 e incrementa en 1 el valor del contador selectedSquareCounter.
+    */
+    private void measureDistanceMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_measureDistanceMenuItemActionPerformed
+        gameActionsDriver.setMeasureDistance(true);
+        printMeasureDistanceMessages(0);
+        selectedSquareCounter++;
+    }//GEN-LAST:event_measureDistanceMenuItemActionPerformed
+
+    
+    private void endTurnMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endTurnMenuItemActionPerformed
+        selectedSquareCounter = 0;
+        gameActionsDriver.setMeasureDistance(false);
+        gameActionsDriver.setSendSpaceShips(false);
+        verifyCompletion();
+    }//GEN-LAST:event_endTurnMenuItemActionPerformed
 
     /**
      * @param args the command line arguments
@@ -409,17 +536,14 @@ public class Konquest extends javax.swing.JFrame {
     private javax.swing.JPanel actionsPane;
     private javax.swing.JPanel backGroundPanel;
     private javax.swing.JPanel boardPanel;
-    private javax.swing.JButton endTurnButton;
+    private javax.swing.JButton cancelActionButton;
+    private javax.swing.JMenuItem endGame;
+    private javax.swing.JButton endTurnMenuItem;
     private javax.swing.JMenu game;
-    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
-    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenuBar jMenuBar1;
-    private javax.swing.JMenuItem jMenuItem1;
     private javax.swing.JMenuItem jMenuItem2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
@@ -427,12 +551,12 @@ public class Konquest extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JToolBar jToolBar2;
+    private javax.swing.JButton measureDistanceMenuItem;
     private javax.swing.JPanel menuPanel;
     private javax.swing.JTextArea messagesArea;
     private javax.swing.JPanel messagesPane;
-    private javax.swing.JMenu move;
     private javax.swing.JMenuItem newGame;
+    private javax.swing.JToolBar optionsBar;
     private javax.swing.JLabel optionsLabel;
     private javax.swing.JPanel panel123;
     private javax.swing.JTextField spaceShipsAmount;

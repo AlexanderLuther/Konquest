@@ -37,8 +37,12 @@ public class Square extends javax.swing.JPanel implements MouseListener{
         return planet;
     }
 
+    /*
+    Al momento de modificar el valor de la variable planet se inserta un MouseListener en la clase.
+    */
     public void setPlanet(Planet planet) {
         this.planet = planet;
+        this.addMouseListener(this);
     }
 
     public Color getColor() {
@@ -79,8 +83,7 @@ public class Square extends javax.swing.JPanel implements MouseListener{
     private void initComponents() {
         this.setBorder(BorderFactory.createLineBorder(Color.WHITE));
         this.setOpaque(false);
-        this.setLayout(new BorderLayout());
-        this.addMouseListener(this);   
+        this.setLayout(new BorderLayout());   
         planetNameLabel.setFont(new Font("Serif", Font.BOLD, 14));
         spaceShipsAmountLabel.setFont(new Font("Serif", Font.BOLD, 14));
         planetNameLabel.setForeground(Color.white);
@@ -206,7 +209,7 @@ public class Square extends javax.swing.JPanel implements MouseListener{
    
     @Override
     public void mouseClicked(MouseEvent e){
-        this.setVisible(false);
+        board.setSelectedSquare(this);
     }
     
     @Override

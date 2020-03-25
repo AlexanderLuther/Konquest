@@ -636,7 +636,7 @@ public class GameSettings extends javax.swing.JDialog {
         columnsSpinner.setModel(new javax.swing.SpinnerNumberModel(4, 4, 25, 1));
 
         completionSpinner.setFont(new java.awt.Font("Serif", 0, 14)); // NOI18N
-        completionSpinner.setModel(new javax.swing.SpinnerNumberModel(0, 0, null, 1));
+        completionSpinner.setModel(new javax.swing.SpinnerNumberModel(2, 2, null, 1));
 
         javax.swing.GroupLayout jPanel23Layout = new javax.swing.GroupLayout(jPanel23);
         jPanel23.setLayout(jPanel23Layout);
