@@ -330,8 +330,14 @@ public class GameActions {
         }
     }
     
-    
-    
+    /*
+    Metodo encargado de establecer si algun jugador ya ha conquistado todos los planetas. Verifica que no exista ningun 
+    planeta nuetral en la lista neutralPlanets, si aun existen devuelve false, de lo contrario itera por cada uno
+    de los jugadores y obtiene la longitud de la lista planets. Si un jugador posee los planetas todos los demas 
+    tendran un 0 en su longitud, entonces si alguno de los jugadores no tiene 0 en su longitud se incrementa el 
+    contador counter en uno. Si al final el contador es igual a 1, solo existe un jugador con todos los planetas
+    por lo cual se debe terminar el juego y se devuelve true, caso contrario se devuelve false.
+    */
     public boolean verifyPlanetsCompletion(List<Player> players, List<Planet> neutralPlanets){
         if(neutralPlanets.size() == 0){
             int counter = 0;
@@ -351,8 +357,6 @@ public class GameActions {
             return false;
         }
     }
-    
-    
     
     //Metodo encargado de finalizar un turno
     public void endTurn(){

@@ -5,6 +5,8 @@ import com.hluther.entityclasses.Planet;
 import com.hluther.entityclasses.Player;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JPanel;
@@ -86,34 +88,42 @@ public class Board extends JPanel{
         3. Se establecen los valores random iniciales de las cordenadas X y Y.
         4. Mientras la casilla no se encuentre vacia se obtendran nuevas coordenadas X y Y.
         5. Se agrega el planeta ademas se modifican varios atributos  de la casilla resultante.
-        6. Se itera por cada planeta neutral y se realizan los pasos 3, 4, y 5.
+        6. Si el mapa es random se agrega a la lista neutralPlanets la cantidad de planetas que indica el mapa.
+        7. Se itera por cada planeta neutral y se realizan los pasos 3, 4, y 5.
     */
     private void addPlanets(){
         int x;
         int y;        
         for(int i = 0; i < players.size(); i++){
             for(int j = 0; j < players.get(i).getPlanets().size(); j++){
-                x = getRandomIndex(rows);
-                y = getRandomIndex(columns);
+                x = getRandomInt(rows, 0);
+                y = getRandomInt(columns, 0);
                 while(squares[x][y].getPlanet() != null){
-                    x = getRandomIndex(rows);
-                    y = getRandomIndex(columns);
+                    x = getRandomInt(rows, 0);
+                    y = getRandomInt(columns, 0);
                 }   
                 squares[x][y].setPlanet(players.get(i).getPlanets().get(j));
                 squares[x][y].setColor(players.get(i).getColor());
-                squares[x][y].setImage(getRandomIndex(4));
+                squares[x][y].setImage(getRandomInt(4, 0));
                 squares[x][y].setGuiInformation();
             }
         }
+        if(map.isRandom()){
+            for(int j = 0; j < map.getNeutralPlanets(); j++){
+                Planet planet = new Planet(getRandomName(), 5, getRandomInt(11, 1), getRandomDouble(), true, false);
+                planet.setOwner("Neutral");
+                neutralPlanets.add(planet); 
+            }    
+        }    
         for(int i = 0; i < neutralPlanets.size(); i++){  
-            x = getRandomIndex(rows);
-            y = getRandomIndex(columns);
+            x = getRandomInt(rows, 0);
+            y = getRandomInt(columns, 0);
             while(squares[x][y].getPlanet() != null){
-                x = getRandomIndex(rows);
-                y = getRandomIndex(columns);
+                x = getRandomInt(rows, 0);
+                y = getRandomInt(columns, 0);
             }   
             squares[x][y].setPlanet(neutralPlanets.get(i));
-            squares[x][y].setImage(getRandomIndex(4));
+            squares[x][y].setImage(getRandomInt(4, 0));
             squares[x][y].setGuiInformation();
         }
     }
@@ -121,8 +131,32 @@ public class Board extends JPanel{
     /*
     Metodo encargado de devolver un numero aleatorio entre 0 y el limite que recibe como parametro.
     */
-    private int getRandomIndex(int limit){
-        return random.nextInt(limit);
+    private int getRandomInt(int limit, int type){
+        if(type == 0) return random.nextInt(limit);
+        else return random.nextInt(limit)+5; 
+    }
+    
+    /*
+    Metodo encargado de devolver un numero aleatorio entre 0.200 y 0.899 con presicion de 6 cifras decimales.
+    */
+    private double getRandomDouble(){
+        double value = random.nextDouble();
+        if(value > 0.899 || value < 0.200){
+            value = getRandomDouble();
+        }
+        return new BigDecimal(value).setScale(6, RoundingMode.HALF_EVEN).doubleValue();
+    }
+    
+    //Metodo encargado de generar nombres de longitud 3 al azar.
+    private String getRandomName(){
+        char n;
+        Random rnd = new Random();
+        String name = new String();
+        for (int i = 0; i < 3 ; i++) {
+            n = (char)(rnd.nextDouble() * 26.0 + 65.0 );
+        name += n;
+        }
+        return name;            
     }
 
     /*

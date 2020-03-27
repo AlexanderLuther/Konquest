@@ -142,4 +142,22 @@ public class PlanetsSettings {
         }
     }
     
+    /*
+    Metodo encargado de valida que el nombre de cada planeta sea unico. Si encuentra un nombre repetido
+    devuelve true, de lo contrario devuelve false.
+    */
+    public boolean validateNames(List<Planet> planets){
+        for(int i = 0; i < planets.size(); i++){
+            for(int j = 0; j < planets.size(); j++){
+                if(planets.get(i) != planets.get(j)){
+                    if(planets.get(i).getName().equals(planets.get(j).getName())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    
 }

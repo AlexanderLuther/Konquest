@@ -153,4 +153,21 @@ public class PlayersSettings {
         players.get(i).setColor(color);
         }
     }
+    
+    /*
+    Metodo encargado de valida que el nombre de cada jugador sea unico. Si encuentra un nombre repetido
+    devuelve true, de lo contrario devuelve false.
+    */
+    public boolean validateNames(List<Player> players){
+        for(int i = 0; i < players.size(); i++){
+            for(int j = 0; j < players.size(); j++){
+                if(players.get(i) != players.get(j)){
+                    if(players.get(i).getName().equals(players.get(j).getName())){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

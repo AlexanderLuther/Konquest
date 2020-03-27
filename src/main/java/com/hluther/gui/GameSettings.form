@@ -673,6 +673,7 @@
                                       <Color blue="66" green="33" red="0" type="rgb"/>
                                     </Property>
                                     <Property name="text" type="java.lang.String" value="Al Azar"/>
+                                    <Property name="toolTipText" type="java.lang.String" value="&lt;html&gt;&lt;font color=red&gt;Los planetas creados tendran los siguientes valores:  &lt;br&gt; Naves = 5 &lt;br&gt; Produccion entre 5  y 15 &lt;br&gt; Porcentaje de muertes ente 0.200  y  8.999&lt;/font&gt;&lt;/html&gt;"/>
                                     <Property name="horizontalAlignment" type="int" value="0"/>
                                     <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
                                       <Dimension value="[50, 23]"/>

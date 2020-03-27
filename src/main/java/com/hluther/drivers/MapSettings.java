@@ -40,10 +40,17 @@ public class MapSettings {
     }
     
     /*
-    Metodo encargado de valirdar que la cantidad de planetas no sea mayor a la cantidad de 
-    espacios disponibles(filas * columnas).
+    Metodo encargado de validar que la cantidad de planetas no sea mayor a la cantidad de 
+    espacios disponibles(filas * columnas). Establece si se crearan planetas de forma 
+    aleatoria, de ser asi suma a la cantidad de planetas existentes la cantidad que se 
+    debera crear.
     */
-    public boolean validateIntegrity(int rows, int columns, int planetsAmount){
-        return ((rows * columns) >= planetsAmount);
+    public boolean validateIntegrity(Map map, int planetsAmount){
+        if(map.isRandom()){
+            return ((map.getRows() * map.getColumns()) >= (planetsAmount + map.getNeutralPlanets()));
+        }
+        else{
+            return ((map.getRows() * map.getColumns()) >= planetsAmount);
+        }
     }
 }

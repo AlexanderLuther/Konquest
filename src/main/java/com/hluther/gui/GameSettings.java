@@ -547,6 +547,7 @@ public class GameSettings extends javax.swing.JDialog {
         randomCheckBox.setFont(new java.awt.Font("Serif", 0, 13)); // NOI18N
         randomCheckBox.setForeground(new java.awt.Color(0, 51, 102));
         randomCheckBox.setText("Al Azar");
+        randomCheckBox.setToolTipText("<html><font color=red>Los planetas creados tendran los siguientes valores:  <br> Naves = 5 <br> Produccion entre 5  y 15 <br> Porcentaje de muertes ente 0.200  y  8.999</font></html>");
         randomCheckBox.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         randomCheckBox.setMinimumSize(new java.awt.Dimension(50, 23));
         randomCheckBox.setPreferredSize(new java.awt.Dimension(120, 23));
@@ -812,23 +813,27 @@ public class GameSettings extends javax.swing.JDialog {
         addButton.addItem("Agregar");
     }//GEN-LAST:event_addButtonPopupMenuWillBecomeInvisible
 
-    
+    /*
+    Metodo encargado de abrir un JFileChooser y permitir la seleccion de un archivo .json.
+        1. Crea una nueva instancia de JFileChooser, la configura y la hace visible.
+        2. Obtiene la ruta del archivo seleccionado y manda a realizar su respectiva lectura. Almacena los datos 
+           obtenidos en la variable de tipo String data.
+        3. Manda a realizar el analisis lexico y sintactico.
+        4. Inicializa las variables de la clase y la interfaz grafica.
+    */
     private void importFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importFileActionPerformed
          try{
-
                 fileChooser = new JFileChooser();
                 configureFileChooser(fileChooser);
                 fileChooser.showOpenDialog(this);      
                 String data = konquestFrame.getFilesDriver().openFile(fileChooser.getSelectedFile().toString());
                 konquestFrame.getMapConfigFileDriver().clearLists();
                 konquestFrame.getAnalisisDriver().doMapConfigFileAnalysis(data, konquestFrame);
-                
                 getLists();
                 initializePlayersArea();
                 initializePlanetsArea(true);
                 initializeMapArea();
-                showMessages();
-                 
+                showMessages();    
             }
         catch(NullPointerException e){
         }
@@ -891,48 +896,63 @@ public class GameSettings extends javax.swing.JDialog {
     /*
     Metodo encargado de realizar las validaciones necesarias para poder comenzar con el juego.
         1. Valida que el nombre del mapa no se encuentre vacio y sea valido. Si no es valido lanza un mensaje
-           indicando el error, caso contrario actualiza todos los datos del mapa y procede a la siguiente validacion.
-        2. Valida que la cantidad de panetas no sea mayor a la cantidad de espacios disponibles. Si la validacion
+           indicando el error. 
+        2. Valida que cada uno de los planetas tenga un nombre unico. Si no es asi lanza un mensaje indicando el error.
+        3. Valida que cada uno de los jugadores tenga un nombre unico. Si no es asi lanza un mensaje indicando el error. 
+           Si la validacion es exitosa actualiza todos los datos del mapa y procede a la siguiente validacion. 
+        4. Valida que la cantidad de panetas no sea mayor a la cantidad de espacios disponibles. Si la validacion
            se realiza exitosamente procede con la siguiente validacion, caso contrario lanza un mensaje indicando
            el error.
-        3. Valida que existan 2 jugadores como minimo para empezar el juego. Si no es asi lanza un mensaje indicando
+        5. Valida que existan 2 jugadores como minimo para empezar el juego. Si no es asi lanza un mensaje indicando
            el error.
-        4. Valida que todos los jugadores tengan asignado por lo menos un planeta. Si la validacion se realiza exitosamente
+        6. Valida que todos los jugadores tengan asignado por lo menos un planeta. Si la validacion se realiza exitosamente
            se limpian todos los registros creados durante la validacion y se procede a asignar a los jugadores todos los 
            planetas de los que es propietario. Por ultimo se cierra la ventana actual. Caso contrario se lanza un mensaje 
            indicando el error.
     */
     private void playButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_playButtonActionPerformed
-        //------------------------  1   ------------------------   
+        //------------------------  1   ------------------------//   
         if(idTextField.getText().isBlank()){
-            JOptionPane.showMessageDialog(this, "Nombre del mapa no valido", "Error", 0);
+            JOptionPane.showMessageDialog(this, "<html><font color=red>Nombre del mapa no valido.</font><html>", "Error", 0);
         }
         else{
-            map = mapSettings.updateMap(map, idTextField, rowsSpinner, columnsSpinner, completionSpinner, neutralPlanetsSpinner, productionSpinner, completionCheckBox, accumulateCheckBox, blindMapCheckBox, randomCheckBox, showSpaceShipsCheckBox, showStatisticsCheckBox);
-            //------------------------  2   ------------------------   
-            if(mapSettings.validateIntegrity(map.getRows(), map.getColumns(), planets.size())){
-                //------------------------  3   ------------------------   
-                if(players.size() < 2){
-                    JOptionPane.showMessageDialog(this, "Se requieren al menos 2 jugadores para iniciar una partida", "Error", 0);
-                }
-                else{
+            //------------------------  2   ------------------------//
+            if(!planetsSettings.validateNames(planets)){
+                //------------------------  3   ------------------------//
+                if(!playersSettings.validateNames(players)){
+                    map = mapSettings.updateMap(map, idTextField, rowsSpinner, columnsSpinner, completionSpinner, neutralPlanetsSpinner, productionSpinner, completionCheckBox, accumulateCheckBox, blindMapCheckBox, randomCheckBox, showSpaceShipsCheckBox, showStatisticsCheckBox);
                     //------------------------  4   ------------------------   
-                    if(!playersSettings.verifyPlanets(planets, players)){  
-                        for(int i = 0; i < players.size(); i++){
-                            players.get(i).getPlanets().clear();
+                    if(mapSettings.validateIntegrity(map, planets.size())){
+                        //------------------------  5   ------------------------   
+                        if(players.size() < 2){
+                            JOptionPane.showMessageDialog(this, "<html><font color=red>Se requieren al menos 2 jugadores para iniciar una partida.</font><html>", "Error", 0);
                         }
-                        playersSettings.assignPlanets(planets, players);
-                        playersSettings.assignColors(players);
-                        startGame = true;
-                        this.dispose();
+                        else{
+                            //------------------------  6   ------------------------   
+                            if(!playersSettings.verifyPlanets(planets, players)){  
+                                for(int i = 0; i < players.size(); i++){
+                                    players.get(i).getPlanets().clear();
+                                }
+                                playersSettings.assignPlanets(planets, players);
+                                playersSettings.assignColors(players);
+                                startGame = true;
+                                this.dispose();
+                            }
+                            else{
+                                JOptionPane.showMessageDialog(this, "<html><font color=red>Cada jugador debe de tener por lo menos 1 planeta propio.</font><html>", "Error", 0);
+                            }   
+                        }
                     }
                     else{
-                        JOptionPane.showMessageDialog(this, "Cada jugador debe de tener por lo menos 1 planeta propio.", "Error", 0);
-                    }   
+                        JOptionPane.showMessageDialog(this, "<html><font color=red>La cantidad de planetas supera la cantidad de cuadros disponibles.</font><html>", "Error", 0);
+                    }
+                }
+                else{
+                    JOptionPane.showMessageDialog(this, "<html><font color=red>Cada jugador debe de tener un nombre unico.</font><html>", "Error", 0);
                 }
             }
             else{
-                JOptionPane.showMessageDialog(this, "La cantidad de planetas supera la cantidad de cuadros disponibles.", "Error", 0);
+                JOptionPane.showMessageDialog(this, "<html><font color=red>Cada planeta debe de tener un nombre unico.</font><html>", "Error", 0);
             }
         }        
     }//GEN-LAST:event_playButtonActionPerformed
