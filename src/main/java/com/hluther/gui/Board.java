@@ -53,6 +53,17 @@ public class Board extends JPanel{
         konquest.setSelectedSquare(selectedSquare);
     }
     
+    //Metodo encargado de actualizar todas las casilla del tablero que contienen un planeta.
+    public void reload(){
+        for (int i = 0; i < rows; i++){
+            for (int j = 0; j < columns; j++){
+                if(squares[i][j].getPlanet() != null){
+                    squares[i][j].reload();
+                }
+            }
+        }
+    }
+    
     /*
     Metodo encargado de constriur el tablero.
     Crea una matriz de objetos de la clase Square, agrega dentro de cada espacio de la matriz una nueva instancia
@@ -92,7 +103,6 @@ public class Board extends JPanel{
                 squares[x][y].setColor(players.get(i).getColor());
                 squares[x][y].setImage(getRandomIndex(4));
                 squares[x][y].setGuiInformation();
-                squares[x][y].setOpaque(true);
             }
         }
         for(int i = 0; i < neutralPlanets.size(); i++){  

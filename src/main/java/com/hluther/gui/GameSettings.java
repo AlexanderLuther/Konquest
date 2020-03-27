@@ -860,6 +860,7 @@ public class GameSettings extends javax.swing.JDialog {
         if (playersTable.getSelectedRow() != -1){
             playersSettings.updatePlayer(playersTableModel, playersTable, players);
             initializePlayersArea();
+            initializePlanetsArea(true);
         }
     }//GEN-LAST:event_playersTablePropertyChange
 

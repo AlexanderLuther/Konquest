@@ -52,6 +52,7 @@ public class Square extends javax.swing.JPanel implements MouseListener{
     public void setColor(Color color) {
         this.color = color;
         this.setBackground(color);
+        this.setOpaque(true);
     }
 
     public int getCoordinateX() {
@@ -152,7 +153,10 @@ public class Square extends javax.swing.JPanel implements MouseListener{
     */
     private void setForegroundLabelsColor(){
         if(this.color != null){
-            if(this.color == Color.red || this.color == Color.MAGENTA || this.color == Color.darkGray || this.color == Color.blue); //{No hacer nada} 
+            if(this.color == Color.red || this.color == Color.MAGENTA || this.color == Color.darkGray || this.color == Color.blue){
+                planetNameLabel.setForeground(Color.white);
+                spaceShipsAmountLabel.setForeground(Color.white);
+            }
             else{
                 planetNameLabel.setForeground(Color.red);
                 spaceShipsAmountLabel.setForeground(Color.red);
@@ -193,6 +197,14 @@ public class Square extends javax.swing.JPanel implements MouseListener{
             System.err.println("No se ha encontrado el archivo: " + path);
             return null;
         }
+    }
+    
+    
+    //Metodo encargado de actualizar los componentes graficos informativos de la clase.
+    public void reload(){
+        setForegroundLabelsColor();
+        insertSpaceShipsAmount();
+        insertStatistics(); 
     }
     
     /*

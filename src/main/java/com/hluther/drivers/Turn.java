@@ -56,4 +56,8 @@ public class Turn {
     public void setTurn(int turn){
         this.turn = turn;
     }
+
+    public int getActualIndex() {
+        return actualIndex;
+    }
 }
