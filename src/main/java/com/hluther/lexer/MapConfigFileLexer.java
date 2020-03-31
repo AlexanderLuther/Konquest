@@ -367,7 +367,7 @@ public class MapConfigFileLexer implements java_cup.runtime.Scanner {
     }
 
     private void printError(String lexeme, int line, int column){
-        //principalFrame.printLexicalError(lexeme, line, column);
+        konquestFrame.printMapConfigFileLexicalError(lexeme, line, column);
     }
 
 

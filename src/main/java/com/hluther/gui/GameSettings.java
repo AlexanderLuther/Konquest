@@ -13,6 +13,7 @@ import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
@@ -69,6 +70,10 @@ public class GameSettings extends javax.swing.JDialog {
     
     public boolean isStartGame(){
         return startGame;
+    }
+
+    public JTextArea getMessagesArea() {
+        return messagesArea;
     }
     
     //Metodo encargado de inicializar el area de jugadores
@@ -822,6 +827,7 @@ public class GameSettings extends javax.swing.JDialog {
         4. Inicializa las variables de la clase y la interfaz grafica.
     */
     private void importFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importFileActionPerformed
+        messagesArea.setText("");
         fileChooser = new JFileChooser();
         configureFileChooser(fileChooser);
         int selection =fileChooser.showOpenDialog(this);  

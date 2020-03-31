@@ -41,7 +41,7 @@ WhiteSpace = {LineTerminator} | [ \t\f]
     }
 
     private void printError(String lexeme, int line, int column){
-        //principalFrame.printLexicalError(lexeme, line, column);
+        konquestFrame.printMapConfigFileLexicalError(lexeme, line, column);
     }
 %}
 

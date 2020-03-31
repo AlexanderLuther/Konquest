@@ -17,12 +17,12 @@ parser code {:
 
     public void syntax_error(Symbol s){
         System.out.println("Error " + s);
-        //konquestFrame.printMapConfigFileSintaxError(s);
+        konquestFrame.printMapConfigFileSintaxError(s);
     }
 
     public void unrecovered_syntax_error(Symbol s){
         System.out.println("Error grave " + s);
-        //konquestFrame.printMapConfigFileSintaxError(s);
+        konquestFrame.printMapConfigFileSintaxError(s);
     } 
 
 :}
@@ -167,7 +167,7 @@ planets::=     PLANETS COLON SQUAREBRACKETO planetsDescription SQUAREBRACKETC
                ;
 
 planetsDescription::=  CURLYBRACKETO planetRulesSelector CURLYBRACKETC COMMA planetsDescription
-                       | CURLYBRACKETO planetRulesSelector CURLYBRACKETC 
+                       | CURLYBRACKETO planetRulesSelector CURLYBRACKETC  
                        ;
  
 planetRulesSelector::=      planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name, ships, production, deathRate, false, false);:}
@@ -215,6 +215,7 @@ neutralPlanets::=   NEUTRALPLANETS COLON SQUAREBRACKETO neutralPlanetsDescriptio
 
 neutralPlanetsDescription::=    CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC COMMA neutralPlanetsDescription
                                 | CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC
+                                | error:e CURLYBRACKETC COMMA neutralPlanetsDescription {:syntax_error((Symbol)e);:}
                                 ;
 
 neutralPlanetRulesSelector::=   planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name, ships, production, deathRate, true, false);:}
@@ -251,12 +252,20 @@ neutralPlanetRulesSelector::=   planetName:name COMMA planetProduction:productio
 
 /*-------------------------------------------------------ESTRUCTURA JUGADORES-------------------------------------------------------*/
 
-players::=     PLAYERS COLON SQUAREBRACKETO playersDescription SQUAREBRACKETC 
+players::=     PLAYERS COLON SQUAREBRACKETO playersDescription SQUAREBRACKETC
+               | error:e COMMA {:syntax_error((Symbol)e);:}
                ;
 
 playersDescription::=   CURLYBRACKETO playerRulesSelector CURLYBRACKETC COMMA playersDescription
                         | CURLYBRACKETO playerRulesSelector CURLYBRACKETC
-                       ;
+                        | error:e CURLYBRACKETC COMMA playersDescription {:syntax_error((Symbol)e);:}
+                        | error:e SQUAREBRACKETC {:syntax_error((Symbol)e);:}
+                        | error:e HARD {:syntax_error((Symbol)e);:}
+                        | error:e EASY {:syntax_error((Symbol)e);:}
+                        | error:e HUMAN {:syntax_error((Symbol)e);:}
+                        | error:e NAMEPLANET {:syntax_error((Symbol)e);:}
+                        | error:e NAMEPLAYER {:syntax_error((Symbol)e);:}
+                        ;
 
 playerRulesSelector::=    playerPlanets:planets COMMA playerName:name COMMA playerType:type {:mapConfigFileDriver.createPlayer(name, planets, type);:}
                           | playerPlanets:planets COMMA playerType:type COMMA playerName:name {:mapConfigFileDriver.createPlayer(name, planets, type);:}

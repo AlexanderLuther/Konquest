@@ -24,7 +24,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import com.hluther.drivers.ReplayActions;
-import java.io.File;
 /**
  *
  * @author helmuth
@@ -45,7 +44,7 @@ public class Konquest extends javax.swing.JFrame {
     private List<Player> players = new ArrayList<Player>();
     private List<FleetDTO> fleets = new ArrayList<FleetDTO>();
     private Map map = new Map();        
-    private GameSettings gameCreator;
+    private GameSettings gameSettingsGUI;
     private BackGroundImage backGroundImage;
     private Board board;
     private JFileChooser fileChooser;
@@ -383,13 +382,25 @@ public class Konquest extends javax.swing.JFrame {
        messagesArea.setText(messagesArea.getText() + "ERROR LEXICO. -> Lexema:  "+lexeme+"  Linea: "+line+" Columna: "+column+ "\n");
     }
     
-     public void printGameSaveSintaxError(Symbol sym){
+    public void printGameSaveSintaxError(Symbol sym){
         sintaxError = true;
         messagesPane.setVisible(true);
         if(!lexicalError){
             messagesArea.setForeground(Color.red);
             messagesArea.setText(messagesArea.getText() + "ERROR SINTACTICO -> Lexema: "+sym.value.toString()+" Linea: "+sym.left+" Columna: "+sym.right + "\n");
         }     
+    }
+     
+    public void printMapConfigFileLexicalError(String lexeme, int line, int column){
+       lexicalError = true;
+       gameSettingsGUI.getMessagesArea().setText(gameSettingsGUI.getMessagesArea().getText()  + "ERROR LEXICO. -> Lexema:  "+lexeme+"  Linea: "+line+" Columna: "+column+ "\n");
+    }
+    
+    public void printMapConfigFileSintaxError(Symbol sym){
+        //sintaxError = true;
+        //if(!lexicalError){
+        gameSettingsGUI.getMessagesArea().setText(gameSettingsGUI.getMessagesArea().getText() + "ERROR SINTACTICO -> Lexema: "+sym.value.toString()+" Linea: "+sym.left+" Columna: "+sym.right + "\n");
+        //}     
     }
      
     /*
@@ -875,12 +886,12 @@ public class Konquest extends javax.swing.JFrame {
     private void newGameMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newGameMenuItemActionPerformed
         if(startedGame) saveGame();
         desactivateGameArea();
-        gameCreator = new GameSettings(this, true);
-        gameCreator.setVisible(true);
-        if(gameCreator.isStartGame()){
-            neutralPlanets = gameCreator.getPlanets();
-            players = gameCreator.getPlayers();
-            map = gameCreator.getMap();
+        gameSettingsGUI = new GameSettings(this, true);
+        gameSettingsGUI.setVisible(true);
+        if(gameSettingsGUI.isStartGame()){
+            neutralPlanets = gameSettingsGUI.getPlanets();
+            players = gameSettingsGUI.getPlayers();
+            map = gameSettingsGUI.getMap();
             startedGame = true;
             startGame();
         }
