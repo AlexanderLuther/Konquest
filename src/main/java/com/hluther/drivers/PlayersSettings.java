@@ -67,15 +67,12 @@ public class PlayersSettings {
             players.remove(playersTable.getSelectedRow());
         }
     }  
-    
-    
-    public void assignPlanets(List<Planet> planets, List<Player> players){
-        //Iterar por cada planeta
+     
+    public void assignPlanets(List<Planet> planets, List<Player> players){       
         for(int i = 0; i < planets.size(); i++){
-            //Iterar por cada jugador
-            for(int j = 0; j < players.size(); j++){
-                if(planets.get(i).getOwner().equals(players.get(j).getName())){
-                    players.get(j).getPlanets().add(planets.get(i));
+            for(Player currentPlayer : players){
+                if(planets.get(i).getOwner().equals(currentPlayer.getName())){
+                    currentPlayer.getPlanets().add(planets.get(i));
                     planets.remove(i);
                     i--;
                     break;
@@ -159,15 +156,15 @@ public class PlayersSettings {
     devuelve true, de lo contrario devuelve false.
     */
     public boolean validateNames(List<Player> players){
-        for(int i = 0; i < players.size(); i++){
-            for(int j = 0; j < players.size(); j++){
-                if(players.get(i) != players.get(j)){
-                    if(players.get(i).getName().equals(players.get(j).getName())){
+        for(Player currentPlayer : players){
+            for(Player comparationPlayer : players){
+                if(currentPlayer != comparationPlayer){
+                    if(currentPlayer.getName().equals(comparationPlayer.getName())){
                         return true;
                     }
                 }
             }
-        }
+        }     
         return false;
     }
 }

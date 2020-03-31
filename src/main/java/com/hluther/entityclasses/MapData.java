@@ -13,7 +13,6 @@ public class MapData {
         this.data = data;
     }
     
-
     public String getName() {
         return name;
     }

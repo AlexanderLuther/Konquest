@@ -17,10 +17,10 @@ public class GameActions {
     private boolean sendSpaceShips = false;
     private int selectedSquareCounter = 0;
     private Konquest konquest;
-    private int fleetsSent = 0;
     private FleetDTO fleet;
     private List<FleetDTO> fleets = new ArrayList<>();
-    
+    private FilesWritter filesWritter;
+    private boolean firstSendding = true;
     
     private Square targetSquare;
     private Planet initialPlanet;
@@ -29,10 +29,10 @@ public class GameActions {
     private double initialPlanetPowerAttack;
     private double targetPlanetPowerAttack;
     private Player attackingPlayer;
-    
        
     public GameActions(Konquest konquest) {
         this.konquest = konquest;
+        this.filesWritter = konquest.getFilesWritter();
     }
     
     //------------------------------------------ Getters y Setters de la clase. ------------------------------------------
@@ -59,7 +59,10 @@ public class GameActions {
     public void setSelectedSquareCounter(int selectedSquareCounter) {
         this.selectedSquareCounter = selectedSquareCounter;
     }
-    
+
+    public boolean isFirstSendding() {
+        return firstSendding;
+    }
     //------------------------------------------ Metodos de la clase. ------------------------------------------
     
     /*
@@ -70,31 +73,29 @@ public class GameActions {
     public void executeAction(Square selectedSquare, Player currentPlayer){
         if(measureDistance){
             switch(selectedSquareCounter){
-                case 2:
-                    konquest.printMeasureDistanceMessages(1);
-                break;
-                case 3:
+                case 2 -> konquest.printDistanceMeasureMessages(1);
+                case 3 -> {
                     konquest.printMeasuredDistance();
                     konquest.printTurnValues();
                     reestoreValues();
-                break;
+                }
             }           
         }
         else if(sendSpaceShips){
             switch(selectedSquareCounter){
-                case 2:
+                case 2 -> {
                     if(selectedSquare.getPlanet().getOwner().equals(currentPlayer.getName())){
-                        konquest.printMeasureDistanceMessages(1);
+                        konquest.printDistanceMeasureMessages(1);
                     }
                     else{
                         selectedSquareCounter = 1;
                     }
-                break;
-                case 3:
+                }
+                case 3 -> {
                     selectedSquareCounter = 4;
-                    konquest.printSendSpaceShipsMessages(2);
+                    konquest.printMessagesSendSpaceShips(2);
                     konquest.activateSpaceShipsAmountArea();
-                break;
+                }
             } 
         }
     }
@@ -169,7 +170,7 @@ public class GameActions {
                 //----------------------------------------  4 Envio de refuerzos   ----------------------------------------//   
                 if(attackingPlayer.getName().equals(targetPlanet.getOwner())){
                     targetPlanet.setSpaceShips(targetPlanet.getSpaceShips() + spaceShipsAmount);
-                    konquest.printArrivalSpaceShipsMessages(0, attackingPlayer.getName(), targetPlanet.getName(), spaceShipsAmount, attackingPlayer.getColor());
+                    konquest.printMessagesArrivalSpaceShips(0, attackingPlayer.getName(), targetPlanet.getName(), spaceShipsAmount, attackingPlayer.getColor());
                 }
                 //----------------------------------------  4 Ataque  ----------------------------------------//   
                 else{
@@ -204,21 +205,21 @@ public class GameActions {
                         }
                         //----------------------------------------  7 Planeta con propietario   ----------------------------------------//   
                         else{
-                            //Remover el planeta del jugador propietario
+                            //Remover el planeta del jugador propietario original
                             for(int j = 0; j < players.size(); j++){
                                 for(int k = 0; k < players.get(j).getPlanets().size(); k++){
-                                    if(targetPlanet == players.get(j).getPlanets().get(k)){
+                                    if(targetPlanet == players.get(j).getPlanets().get(k) && attackingPlayer != players.get(j)){
                                         players.get(j).getPlanets().remove(k);
                                     }
                                 }
-                            }
+                            }                            
                         }
-                        konquest.printArrivalSpaceShipsMessages(2, attackingPlayer.getName(), targetPlanet.getName(), spaceShipsAmount, attackingPlayer.getColor());
+                        konquest.printMessagesArrivalSpaceShips(2, attackingPlayer.getName(), targetPlanet.getName(), spaceShipsAmount, attackingPlayer.getColor());
                     }
                     //----------------------------------------  6 Planeta defendido  ----------------------------------------//
                     else{
                         targetPlanet.setSpaceShips((int)Math.round((targetPlanet.getDeathRate() * targetPlanet.getSpaceShips()) - (initialPlanet.getDeathRate() * spaceShipsAmount)));
-                        konquest.printArrivalSpaceShipsMessages(1, attackingPlayer.getName(), targetPlanet.getName(), spaceShipsAmount, attackingPlayer.getColor());
+                        konquest.printMessagesArrivalSpaceShips(1, attackingPlayer.getName(), targetPlanet.getName(), spaceShipsAmount, attackingPlayer.getColor());
                     }
                 }
                 targetSquare.reload();    
@@ -240,9 +241,17 @@ public class GameActions {
         subtractPlanets(initialSquare, amount);
         reestoreValues();
         initialSquare.reload();
-        fleetsSent++;
-        fleet = new FleetDTO(fleetsSent, initialSquare, targetSquare, amount, getArrivalTurn(currentTurn, calculateDistance(initialSquare, targetSquare)), currentPlayer);
-        konquest.getFleets().add(fleet);
+        fleet = new FleetDTO(currentTurn, initialSquare, targetSquare, amount, getArrivalTurn(currentTurn, calculateDistance(initialSquare, targetSquare)), currentPlayer);
+        if(firstSendding){
+            firstSendding = false;
+            filesWritter.writeSending(fleet, true);
+        }
+        else{
+            filesWritter.writeSending(fleet, false);
+        }
+        if(!konquest.isReplay()){
+            konquest.getFleets().add(fleet);
+        }
     }
     
     /*
@@ -259,7 +268,7 @@ public class GameActions {
     la formula de distancia entre puntos. Redondea a dos cifras decimales el resultado y lo devuelve.
     */
     public double calculateDistance(Square initialSquare, Square targetSquare){
-        double distance = Math.round(Math.sqrt((Math.pow((targetSquare.getCoordinateX() - initialSquare.getCoordinateX()), 2)) + Math.pow((targetSquare.getCoordinateY() - initialSquare.getCoordinateY()), 2)) * 100d) / 100d;
+        double distance = Math.round(Math.sqrt((Math.pow((targetSquare.getRow() - initialSquare.getRow()), 2)) + Math.pow((targetSquare.getColumn() - initialSquare.getColumn()), 2)) * 100d) / 100d;
         return distance;
     }
     
@@ -284,12 +293,7 @@ public class GameActions {
     */
     public boolean verifyTurnCompletion(int actualTurn, int completionTurn){
         if(completionTurn != -1){
-            if(actualTurn == completionTurn){
-                return true;
-            }
-            else{
-                return false;
-            }
+            return actualTurn == completionTurn;
         }
         else{
             return false;
@@ -339,19 +343,14 @@ public class GameActions {
     por lo cual se debe terminar el juego y se devuelve true, caso contrario se devuelve false.
     */
     public boolean verifyPlanetsCompletion(List<Player> players, List<Planet> neutralPlanets){
-        if(neutralPlanets.size() == 0){
+        if(neutralPlanets.isEmpty()){
             int counter = 0;
             for(int i = 0; i < players.size(); i++){
-                if(players.get(i).getPlanets().size() != 0){
+                if(!players.get(i).getPlanets().isEmpty()){
                     counter++;
                 }
             }
-            if(counter == 1){
-                return true;
-            }
-            else{
-                return false;
-            }
+            return counter == 1;
         }
         else{
             return false;

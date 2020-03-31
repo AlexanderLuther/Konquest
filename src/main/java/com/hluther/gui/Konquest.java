@@ -2,8 +2,11 @@ package com.hluther.gui;
 
 import com.hluther.drivers.Analisys;
 import com.hluther.drivers.Files;
+import com.hluther.drivers.FilesWritter;
 import com.hluther.drivers.GameActions;
+import com.hluther.drivers.GameSaveFile;
 import com.hluther.drivers.MapConfigFile;
+import com.hluther.drivers.TextWritter;
 import com.hluther.drivers.Turn;
 import com.hluther.entityclasses.FleetDTO;
 import com.hluther.entityclasses.Map;
@@ -14,19 +17,28 @@ import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java_cup.runtime.Symbol;
 import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import com.hluther.drivers.ReplayActions;
+import java.io.File;
 /**
  *
  * @author helmuth
  */
 public class Konquest extends javax.swing.JFrame {
     
+    private FileNameExtensionFilter filter = new FileNameExtensionFilter("JSON","json");
+    private FilesWritter filesWritter;
     private Analisys analisisDriver = new Analisys();
     private MapConfigFile mapConfigFileDriver = new MapConfigFile();
+    private GameSaveFile gameSaveFileDriver = new GameSaveFile();
     private Turn turnsDriver;
     private GameActions gameActionsDriver;
+    private ReplayActions replayActions;
     private InformationTable informationTable;
     private Files filesDriver = new Files();
     private List<Planet> neutralPlanets = new ArrayList<Planet>();
@@ -36,9 +48,15 @@ public class Konquest extends javax.swing.JFrame {
     private GameSettings gameCreator;
     private BackGroundImage backGroundImage;
     private Board board;
+    private JFileChooser fileChooser;
     private Square initialSquare;
     private Square targetSquare;
     private String color = "";
+    private boolean lexicalError = false;
+    private boolean sintaxError = false;
+    private boolean startedGame = false;
+    private boolean replay = false;
+    private boolean fastReplay = false;
     
     //----------------------------------------- Constructor de la clase. -----------------------------------------//
     public Konquest() {
@@ -54,6 +72,8 @@ public class Konquest extends javax.swing.JFrame {
         endGameMenuItem.setEnabled(false);
         sendShipsMenuItem.setEnabled(false);
         endTurnMenuItem.setEnabled(false);
+        endReplayButton.setVisible(false);
+        nextButton.setVisible(false);
         try {
             backGroundImage = new BackGroundImage(ImageIO.read(this.getClass().getResource("/konquestBackGround.jpg")));     
             this.backGroundPanel.setBorder(backGroundImage);
@@ -64,7 +84,7 @@ public class Konquest extends javax.swing.JFrame {
     }
   
     //----------------------------------------- Getters y Setters de la clase. -----------------------------------------//
-    public MapConfigFile getMapConfigFileDriver() {
+    public MapConfigFile getMapConfigFile() {
         return mapConfigFileDriver;
     }
     
@@ -74,6 +94,13 @@ public class Konquest extends javax.swing.JFrame {
     
     public Files getFilesDriver() {
         return filesDriver;
+    }
+    
+     public FilesWritter getFilesWritter() {
+        return filesWritter;
+    }
+    public GameSaveFile getGameSaveFileDriver() {
+        return gameSaveFileDriver;
     }
     
     public List<Planet> getNeutralPlanets() {
@@ -95,6 +122,10 @@ public class Konquest extends javax.swing.JFrame {
     public List<FleetDTO> getFleets() {
         return fleets;
     }
+
+    public boolean isReplay() {
+        return replay;
+    }
     
     public void setSelectedSquare(Square selectedSquare) {
         switch(gameActionsDriver.getSelectedSquareCounter()){
@@ -115,36 +146,61 @@ public class Konquest extends javax.swing.JFrame {
     //----------------------------------------- Metodos de la clase. -----------------------------------------//
     
     /*Metodo encargado de iniciar un nuevo juego.
-        1. Crea nuevas instancias del tablero(Board), controlador del juego(GameActions) y controlador de turnos(Turn).
+        1. Crea nuevas instancias del tablero(Board), controlador del juego(GameActions), controlador de turnos(Turn), escritor de archivos(FileWritter)
+           y de tabla de informacion(InformationTable).
         2. Hace visibles las areas de utilidades.
-        3. Si ya existia un tablero dentro del boardPanel entonces se remueve. Se agrega el nuevo tablero al boardPanel.
+        3. Llama a la escritura del estado inicial del mapa.
+        4. Si ya existia un tablero dentro del boardPanel entonces se remueve. Se agrega el nuevo tablero al boardPanel.
         5. Se establece el primer turno, el color del nombre del jugador en turno y se imprimen mensajes correspondientes
            al turno actual.
+        6. Si es un replay se procesan las acciones realizadas durante el primer turno.
     */
     public void startGame(){
         //-------------------------     1   -------------------------//   
-        board = new Board(map.getRows(), map.getColumns(), this);
+        board = new Board(map.getRows(), map.getColumns(), !replay, this);
+        filesWritter = new FilesWritter(new TextWritter());
         gameActionsDriver = new GameActions(this);
+        if(replay){
+            replayActions = new ReplayActions(gameActionsDriver, gameSaveFileDriver.getFleets(), this);
+        }
         turnsDriver = new Turn(players);
-        informationTable = new InformationTable(this, true);
+        informationTable = new InformationTable(this, true, turnsDriver);
         //-------------------------     2   -------------------------//   
         messagesPane.setVisible(true);
-        actionsPane.setVisible(true);
+        messagesArea.setForeground(Color.white);
         optionsBar.setVisible(true);
-        measureMenuItem.setEnabled(true);
-        fleetMenuItem.setEnabled(true);
-        endGameMenuItem.setEnabled(true);
-        sendShipsMenuItem.setEnabled(true);
-        endTurnMenuItem.setEnabled(true);
+        endReplayButton.setVisible(replay);
+        nextButton.setVisible(replay);
+        measureDistanceButton.setVisible(!replay);
+        sendShipsButton.setVisible(!replay);
+        endTurnButton.setVisible(!replay);
+        fleetButton.setVisible(!replay);
+        if(!replay){
+            actionsPane.setVisible(true);
+            measureMenuItem.setEnabled(true);
+            fleetMenuItem.setEnabled(true);
+            endGameMenuItem.setEnabled(true);
+            sendShipsMenuItem.setEnabled(true);
+            endTurnMenuItem.setEnabled(true);
+        }
+        else{
+            replayActions.createFleets(fleets, board.getSquares());
+        }
         //-------------------------     3   -------------------------//   
+        filesWritter.writeInitialState(players, neutralPlanets, map);
+        //-------------------------     4   -------------------------//   
         boardPanel.removeAll();
         boardPanel.revalidate();
         boardPanel.add(board);
         this.repaint();
-        //-------------------------     4   -------------------------//   
+        //-------------------------     5   -------------------------//   
         turnsDriver.setTurn();
         color = getTextColor(turnsDriver.getActualPlayer().getColor());
-        printTurnValues();       
+        printTurnValues();   
+        //-------------------------     6   -------------------------//
+        if(replay){
+            replayActions.setSpaceShipsSendings(fleets, turnsDriver.getTurn());
+        }
     }
     
     //Metodo encargado de establecer el color del nombre del jugador en turno.
@@ -163,7 +219,7 @@ public class Konquest extends javax.swing.JFrame {
     }
     
     //Metodo encargado de finalizar el turno
-    private void endTurn(){
+    public void endTurn(){        
         gameActionsDriver.endTurn();
         turnsDriver.setTurn();
         if(!gameActionsDriver.verifyTurnCompletion(turnsDriver.getTurn(), map.getCompletion())){
@@ -178,12 +234,26 @@ public class Konquest extends javax.swing.JFrame {
                 printTurnValues();
             }
             else{
-                JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>En hora buena, has conquistado todos los planetas!. Fin del juego.<br>" + gameActionsDriver.getWinner(players) +"</font></center></html>");
+                if(replay){
+                    JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>En hora buena, has conquistado todos los planetas!. Fin del juego.<br>" + gameActionsDriver.getWinner(players) +"</font></center></html>");
+                    if(!fastReplay)JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>Fin de la repeticion</font></center></html>");
+                }
+                else{
+                    JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>En hora buena, has conquistado todos los planetas!. Fin del juego.<br>" + gameActionsDriver.getWinner(players) +"</font></center></html>");
+                    saveGame();
+                }    
                 desactivateGameArea();
             } 
         }
         else{
-            JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>Se ha alcanzado el limite de turnos. Fin del juego.<br>" + gameActionsDriver.getWinner(players) +"</font></center></html>");
+            if(replay){
+                JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>Se ha alcanzado el limite de turnos. Fin del juego.<br>" + gameActionsDriver.getWinner(players) +"</font></center></html>");
+                if(!fastReplay)JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>Fin de la repeticion</font></center></html>");
+            }
+            else{
+                JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>Se ha alcanzado el limite de turnos. Fin del juego.<br>" + gameActionsDriver.getWinner(players) +"</font></center></html>");
+                saveGame();
+            }
             desactivateGameArea();
         }
     }   
@@ -203,6 +273,12 @@ public class Konquest extends javax.swing.JFrame {
         boardPanel.revalidate();
         fleets.clear();
         messagesArea.setText("");
+        endReplayButton.setVisible(false);
+        nextButton.setVisible(false);
+        players.clear();
+        neutralPlanets.clear();
+        replay = false;
+        startedGame = false;
     }
     
     //Metodo encargado de pemitir el ingreso de numeros en el JPasswordField
@@ -224,14 +300,14 @@ public class Konquest extends javax.swing.JFrame {
     private void measureDistance(){
         gameActionsDriver.setMeasureDistance(true);
         gameActionsDriver.setSelectedSquareCounter(1);
-        printMeasureDistanceMessages(0);
+        printDistanceMeasureMessages(0);
     }
     
     //Metodo encargado de iniciar con el proceso de envio de naves.
     private void sendSpaceShips(){
         gameActionsDriver.setSendSpaceShips(true);
         gameActionsDriver.setSelectedSquareCounter(1);
-        printSendSpaceShipsMessages(0);
+        printMessagesSendSpaceShips(0);
     }
      
     //Metodo encargado de mostrar en pantalla el resultado de una medicion de distancias.
@@ -248,7 +324,7 @@ public class Konquest extends javax.swing.JFrame {
     }
     
     //Metodo encargado de llenar las areas de mensajes con valores correspondientes a la medicion de una distancia.
-    public void printMeasureDistanceMessages(int type){
+    public void printDistanceMeasureMessages(int type){
         switch(type){
             case 0:
                 optionsLabel.setText("<html> <font size =5 color=\""+color+"\">"+turnsDriver.getActualPlayer().getName()+"</font><font color=\"white\">: Selecione el planeta inicial. </font></html>");
@@ -260,7 +336,7 @@ public class Konquest extends javax.swing.JFrame {
     }
     
     //Metodo encargado de llenar las areas de mensajes con valores correspondientes al envio de naves.
-    public void printSendSpaceShipsMessages(int type){
+    public void printMessagesSendSpaceShips(int type){
         switch(type){
             case 0:
                 optionsLabel.setText("<html> <font size =5 color=\""+color+"\">"+turnsDriver.getActualPlayer().getName()+"</font><font color=\"white\">: Selecione el planeta origen. </font></html>");
@@ -275,23 +351,115 @@ public class Konquest extends javax.swing.JFrame {
     }
     
      //Metodo encargado de llenar las areas de mensajes con valores correspondientes al resultado del envio de naves.
-    public void printArrivalSpaceShipsMessages(int type, String attackingPlayer, String targetPlanet, int amount, Color playerColor){
-        switch(type){
-            case 0: 
-                JOptionPane.showMessageDialog(this, "<html><font color=purple> Han llegado refuerzos (<b>"+amount+"</b> naves) al planeta <font color ="+getTextColor(playerColor)+"><b>"+targetPlanet+"</b></font></font></html>");
-                messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n Han llegado refuerzos ("+amount+" naves) al planeta "+targetPlanet+"");
-            break;
-            case 1:
-                JOptionPane.showMessageDialog(this, "<html><font color=purple> El planeta <b>"+targetPlanet+"</b> se ha defendido del ataque de <font color="+getTextColor(playerColor)+"><b>"+attackingPlayer+"</b></font></font></html>");
-                messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n El planeta "+targetPlanet+" se ha defendido del ataque de "+attackingPlayer);
-            break;  
-            case 2:
-                JOptionPane.showMessageDialog(this, "<html><font color=purple> El planeta <b>"+targetPlanet+"</b> ha sido conquistado por <font color="+getTextColor(playerColor)+"><b>"+attackingPlayer+"</b></font></font></html>");
-                messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n El planeta "+targetPlanet+" ha sido conquistado por "+attackingPlayer);
-            break; 
-        }
+    public void printMessagesArrivalSpaceShips(int type, String attackingPlayer, String targetPlanet, int amount, Color playerColor){
+        if(!fastReplay){
+            switch(type){
+                case 0: 
+                    JOptionPane.showMessageDialog(this, "<html><font color=purple> Han llegado refuerzos (<b>"+amount+"</b> naves) al planeta <font color ="+getTextColor(playerColor)+"><b>"+targetPlanet+"</b></font></font></html>");
+                    messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n Han llegado refuerzos ("+amount+" naves) al planeta "+targetPlanet+"");
+                break;
+                case 1:
+                    JOptionPane.showMessageDialog(this, "<html><font color=purple> El planeta <b>"+targetPlanet+"</b> se ha defendido del ataque de <font color="+getTextColor(playerColor)+"><b>"+attackingPlayer+"</b></font></font></html>");
+                    messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n El planeta "+targetPlanet+" se ha defendido del ataque de "+attackingPlayer);
+                break;  
+                case 2:
+                    JOptionPane.showMessageDialog(this, "<html><font color=purple> El planeta <b>"+targetPlanet+"</b> ha sido conquistado por <font color="+getTextColor(playerColor)+"><b>"+attackingPlayer+"</b></font></font></html>");
+                    messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n El planeta "+targetPlanet+" ha sido conquistado por "+attackingPlayer);
+                break; 
+            }
+        } 
     }
     
+     //Metodo encargado de llenar las areas de mensajes con valores correspondientes al resultado del envio de naves.
+    public void printMessagesSendingSpaceShips(String attackingPlayer, String initialPlanet, String targetPlanet, int amount){
+        messagesArea.setText(messagesArea.getText() + "\n --Turno " + turnsDriver.getTurn() + ":--\n El jugador "+attackingPlayer+" envio "+amount+" naves desde el planeta "+initialPlanet+" al planeta "+targetPlanet);
+    }
+    
+    //----------------------------------------Impresion de errores lexicos y sintacticos----------------------------------------//
+    public void printGameSaveLexicalError(String lexeme, int line, int column){
+       lexicalError = true;
+       messagesPane.setVisible(true);
+       messagesArea.setForeground(Color.red);
+       messagesArea.setText(messagesArea.getText() + "ERROR LEXICO. -> Lexema:  "+lexeme+"  Linea: "+line+" Columna: "+column+ "\n");
+    }
+    
+     public void printGameSaveSintaxError(Symbol sym){
+        sintaxError = true;
+        messagesPane.setVisible(true);
+        if(!lexicalError){
+            messagesArea.setForeground(Color.red);
+            messagesArea.setText(messagesArea.getText() + "ERROR SINTACTICO -> Lexema: "+sym.value.toString()+" Linea: "+sym.left+" Columna: "+sym.right + "\n");
+        }     
+    }
+     
+    /*
+     Metodo encargado de preguntar si se desea guardar el juego actual. Si la respuesta obtenida es 0
+     se realiza el proceso de guardado abriendo un JFileChooser para seleccionar la ubicacion y lanzando
+     un mensaje indicando si se guardo o no la partida.
+     */ 
+    public void saveGame(){
+        switch(JOptionPane.showInternalConfirmDialog(null, "<html><font color=purple>Desea guardar la partida?</font></html>","Guardar Partida",2)){           
+            case 0:
+                    if(gameActionsDriver.isFirstSendding()){
+                        filesWritter.closeGlobalEstructure();
+                    }
+                    else{
+                        filesWritter.closeAll();
+                    }
+                    fileChooser = new JFileChooser();
+                    configureFileChooser(fileChooser, 1);
+                    int selection = fileChooser.showOpenDialog(this);
+                    if(selection == JFileChooser.APPROVE_OPTION){
+                        filesDriver.createFile(fileChooser.getSelectedFile().toString(), filesWritter.getData());
+                        JOptionPane.showMessageDialog(this, "<html><font color=purple>Partida guardada exitosamente.</font></html>", "Partida Guardada", 1);
+                    }
+            break;
+        }
+        startedGame = false;
+     }
+    
+    public void endReplay(){
+        JOptionPane.showMessageDialog(this, "<html><center><font size=4 color=purple>Fin de la repeticion</font></center></html>");
+        desactivateGameArea();
+    }
+    
+    //----------------------------------------Configuracion FileChooser----------------------------------------//
+    //Metodo encargado de configurar el FileChooser
+    public void configureFileChooser(JFileChooser fileChooser, int type){
+        fileChooser.revalidate();
+        fileChooser.setFileFilter(filter);
+        if(type == 0){
+            fileChooser.setApproveButtonText("Abrir");
+            fileChooser.setDialogTitle("Abrir Archivo");
+        }
+        else{
+            fileChooser.setApproveButtonText("Guardar");
+            fileChooser.setDialogTitle("Guardar Archivo");
+        }
+        
+    }
+    
+    public boolean doReplay(){
+        if(startedGame) saveGame();
+        desactivateGameArea();
+        gameSaveFileDriver.clearLists();
+        lexicalError = false;
+        sintaxError = false;
+        fileChooser = new JFileChooser();
+        configureFileChooser(fileChooser, 0);
+        int selection = fileChooser.showOpenDialog(this);      
+        if(selection == JFileChooser.APPROVE_OPTION){
+            String data = filesDriver.openFile(fileChooser.getSelectedFile().toString());
+            analisisDriver.doGameSaveFileAnalysis(data, this);
+            neutralPlanets = gameSaveFileDriver.getPlanets();
+            players = gameSaveFileDriver.getPlayers();
+            map = gameSaveFileDriver.getMap();  
+            replay = true;
+            startGame();
+        }
+        return selection == JFileChooser.APPROVE_OPTION; 
+    }
+ 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -304,6 +472,9 @@ public class Konquest extends javax.swing.JFrame {
         sendShipsButton = new javax.swing.JButton();
         fleetButton = new javax.swing.JButton();
         endTurnButton = new javax.swing.JButton();
+        nextButton = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
+        endReplayButton = new javax.swing.JButton();
         messagesPane = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         turnLabel = new javax.swing.JLabel();
@@ -322,6 +493,8 @@ public class Konquest extends javax.swing.JFrame {
         boardPanel = new javax.swing.JPanel();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu2 = new javax.swing.JMenu();
+        replayMenuItem = new javax.swing.JMenuItem();
+        restartMenuItem = new javax.swing.JMenuItem();
         game = new javax.swing.JMenu();
         newGameMenuItem = new javax.swing.JMenuItem();
         endGameMenuItem = new javax.swing.JMenuItem();
@@ -416,6 +589,35 @@ public class Konquest extends javax.swing.JFrame {
             }
         });
         optionsBar.add(endTurnButton);
+
+        nextButton.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+        nextButton.setForeground(new java.awt.Color(0, 51, 102));
+        nextButton.setText("Siguiente Turno");
+        nextButton.setFocusable(false);
+        nextButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        nextButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        nextButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                nextButtonActionPerformed(evt);
+            }
+        });
+        optionsBar.add(nextButton);
+
+        jLabel2.setText("          ");
+        optionsBar.add(jLabel2);
+
+        endReplayButton.setFont(new java.awt.Font("Serif", 1, 14)); // NOI18N
+        endReplayButton.setForeground(new java.awt.Color(0, 51, 102));
+        endReplayButton.setText("Finalizar repeticion");
+        endReplayButton.setFocusable(false);
+        endReplayButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        endReplayButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        endReplayButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                endReplayButtonActionPerformed(evt);
+            }
+        });
+        optionsBar.add(endReplayButton);
 
         menuPanel.add(optionsBar);
 
@@ -536,7 +738,32 @@ public class Konquest extends javax.swing.JFrame {
 
         jMenu2.setForeground(new java.awt.Color(102, 0, 255));
         jMenu2.setText("Archivo");
-        jMenu2.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 1, 13)); // NOI18N
+        jMenu2.setFont(new java.awt.Font("Serif", 1, 13)); // NOI18N
+
+        replayMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_R, java.awt.event.InputEvent.CTRL_MASK));
+        replayMenuItem.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 12)); // NOI18N
+        replayMenuItem.setForeground(new java.awt.Color(102, 0, 255));
+        replayMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/jugar.png"))); // NOI18N
+        replayMenuItem.setText("Reproducir partida guardada");
+        replayMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                replayMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(replayMenuItem);
+
+        restartMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_A, java.awt.event.InputEvent.CTRL_MASK));
+        restartMenuItem.setFont(new java.awt.Font("Bitstream Vera Sans Mono", 0, 12)); // NOI18N
+        restartMenuItem.setForeground(new java.awt.Color(102, 0, 255));
+        restartMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/jugarw.png"))); // NOI18N
+        restartMenuItem.setText("Reanudar partida guardada");
+        restartMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                restartMenuItemActionPerformed(evt);
+            }
+        });
+        jMenu2.add(restartMenuItem);
+
         jMenuBar1.add(jMenu2);
 
         game.setForeground(new java.awt.Color(102, 0, 255));
@@ -560,6 +787,11 @@ public class Konquest extends javax.swing.JFrame {
         endGameMenuItem.setForeground(new java.awt.Color(102, 0, 255));
         endGameMenuItem.setIcon(new javax.swing.ImageIcon(getClass().getResource("/eliminar.png"))); // NOI18N
         endGameMenuItem.setText("Finalizar partida");
+        endGameMenuItem.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                endGameMenuItemActionPerformed(evt);
+            }
+        });
         game.add(endGameMenuItem);
 
         measureMenuItem.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.CTRL_MASK));
@@ -641,12 +873,15 @@ public class Konquest extends javax.swing.JFrame {
     valor startGame del JDialog es true. Por ultimo llama al metodo starGame().
     */
     private void newGameMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newGameMenuItemActionPerformed
+        if(startedGame) saveGame();
+        desactivateGameArea();
         gameCreator = new GameSettings(this, true);
         gameCreator.setVisible(true);
         if(gameCreator.isStartGame()){
             neutralPlanets = gameCreator.getPlanets();
             players = gameCreator.getPlayers();
             map = gameCreator.getMap();
+            startedGame = true;
             startGame();
         }
     }//GEN-LAST:event_newGameMenuItemActionPerformed
@@ -668,7 +903,8 @@ public class Konquest extends javax.swing.JFrame {
 
     //Metodo encargado de cerrar el juego
     private void exitMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitMenuItemActionPerformed
-        this.dispose();
+        if(startedGame) saveGame();
+        System.exit(0);
     }//GEN-LAST:event_exitMenuItemActionPerformed
     
     //Metodo encargado de llamar al metodo measureDistance
@@ -733,6 +969,55 @@ public class Konquest extends javax.swing.JFrame {
         informationTable.setVisible(true);
     }//GEN-LAST:event_fleetMenuItemActionPerformed
 
+    private void replayMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_replayMenuItemActionPerformed
+        doReplay();
+    }//GEN-LAST:event_replayMenuItemActionPerformed
+
+    private void endReplayButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endReplayButtonActionPerformed
+        replay = false;
+        boardPanel.removeAll();
+        boardPanel.revalidate();
+        desactivateGameArea();
+    }//GEN-LAST:event_endReplayButtonActionPerformed
+
+    private void nextButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_nextButtonActionPerformed
+        if(fleets.isEmpty()){
+            endReplay();
+        }
+        else{
+            turnsDriver.setActualIndex(players.size() - 1);
+            endTurn();
+            replayActions.setSpaceShipsSendings(fleets, turnsDriver.getTurn());
+        }
+    }//GEN-LAST:event_nextButtonActionPerformed
+
+    private void endGameMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_endGameMenuItemActionPerformed
+        saveGame();
+        desactivateGameArea();
+    }//GEN-LAST:event_endGameMenuItemActionPerformed
+
+    private void restartMenuItemActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_restartMenuItemActionPerformed
+        if(doReplay()){
+            fastReplay = true;
+            replayActions.doFastReplay(fleets, turnsDriver, players);
+            fastReplay = false;
+            replay = false;
+            startedGame = true;    
+            endReplayButton.setVisible(false);
+            nextButton.setVisible(false);
+            measureDistanceButton.setVisible(true);
+            sendShipsButton.setVisible(true);
+            endTurnButton.setVisible(true);
+            fleetButton.setVisible(true);
+            actionsPane.setVisible(true);
+            measureMenuItem.setEnabled(true);
+            fleetMenuItem.setEnabled(true);
+            endGameMenuItem.setEnabled(true);
+            sendShipsMenuItem.setEnabled(true);
+            endTurnMenuItem.setEnabled(true);
+        }
+    }//GEN-LAST:event_restartMenuItemActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -774,6 +1059,7 @@ public class Konquest extends javax.swing.JFrame {
     private javax.swing.JPanel boardPanel;
     private javax.swing.JButton cancelActionButton;
     private javax.swing.JMenuItem endGameMenuItem;
+    private javax.swing.JButton endReplayButton;
     private javax.swing.JButton endTurnButton;
     private javax.swing.JMenuItem endTurnMenuItem;
     private javax.swing.JMenuItem exitMenuItem;
@@ -781,6 +1067,7 @@ public class Konquest extends javax.swing.JFrame {
     private javax.swing.JMenuItem fleetMenuItem;
     private javax.swing.JMenu game;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
     private javax.swing.JMenuBar jMenuBar1;
@@ -796,9 +1083,12 @@ public class Konquest extends javax.swing.JFrame {
     private javax.swing.JTextArea messagesArea;
     private javax.swing.JPanel messagesPane;
     private javax.swing.JMenuItem newGameMenuItem;
+    private javax.swing.JButton nextButton;
     private javax.swing.JToolBar optionsBar;
     private javax.swing.JLabel optionsLabel;
     private javax.swing.JPanel panel123;
+    private javax.swing.JMenuItem replayMenuItem;
+    private javax.swing.JMenuItem restartMenuItem;
     private javax.swing.JButton sendShipsButton;
     private javax.swing.JMenuItem sendShipsMenuItem;
     private javax.swing.JPasswordField spaceShipsAmount;

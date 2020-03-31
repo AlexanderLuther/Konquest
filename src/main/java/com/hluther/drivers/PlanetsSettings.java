@@ -147,10 +147,10 @@ public class PlanetsSettings {
     devuelve true, de lo contrario devuelve false.
     */
     public boolean validateNames(List<Planet> planets){
-        for(int i = 0; i < planets.size(); i++){
-            for(int j = 0; j < planets.size(); j++){
-                if(planets.get(i) != planets.get(j)){
-                    if(planets.get(i).getName().equals(planets.get(j).getName())){
+        for(Planet currentPlanet : planets){
+            for(Planet comparationPlanet : planets){
+                if(currentPlanet != comparationPlanet){
+                    if(currentPlanet.getName().equals(comparationPlanet.getName())){
                         return true;
                     }
                 }
@@ -158,6 +158,4 @@ public class PlanetsSettings {
         }
         return false;
     }
-    
-    
 }

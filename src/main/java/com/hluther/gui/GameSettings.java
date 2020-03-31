@@ -110,10 +110,10 @@ public class GameSettings extends javax.swing.JDialog {
     Metodo encargado de establecer los valores de los parametros que recibe.
     */
     public void getLists(){
-        map = konquestFrame.getMapConfigFileDriver().getMap();
-        players = konquestFrame.getMapConfigFileDriver().getPlayers();
-        planets = planetsSettings.setInitialProduction(konquestFrame.getMapConfigFileDriver().getPlanets(), map.getProduction());
-        messages = konquestFrame.getMapConfigFileDriver().getMessages();
+        map = konquestFrame.getMapConfigFile().getMap();
+        players = konquestFrame.getMapConfigFile().getPlayers();
+        planets = planetsSettings.setInitialProduction(konquestFrame.getMapConfigFile().getPlanets(), map.getProduction());
+        messages = konquestFrame.getMapConfigFile().getMessages();
     }
     
 //----------------------------------------Tabla de Jugadores----------------------------------------//   
@@ -822,20 +822,19 @@ public class GameSettings extends javax.swing.JDialog {
         4. Inicializa las variables de la clase y la interfaz grafica.
     */
     private void importFileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importFileActionPerformed
-         try{
-                fileChooser = new JFileChooser();
-                configureFileChooser(fileChooser);
-                fileChooser.showOpenDialog(this);      
-                String data = konquestFrame.getFilesDriver().openFile(fileChooser.getSelectedFile().toString());
-                konquestFrame.getMapConfigFileDriver().clearLists();
-                konquestFrame.getAnalisisDriver().doMapConfigFileAnalysis(data, konquestFrame);
-                getLists();
-                initializePlayersArea();
-                initializePlanetsArea(true);
-                initializeMapArea();
-                showMessages();    
-            }
-        catch(NullPointerException e){
+        fileChooser = new JFileChooser();
+        configureFileChooser(fileChooser);
+        int selection =fileChooser.showOpenDialog(this);  
+
+        if(selection == JFileChooser.APPROVE_OPTION){
+            String data = konquestFrame.getFilesDriver().openFile(fileChooser.getSelectedFile().toString());
+            konquestFrame.getMapConfigFile().clearLists();
+            konquestFrame.getAnalisisDriver().doMapConfigFileAnalysis(data, konquestFrame);
+            getLists();
+            initializePlayersArea();
+            initializePlanetsArea(true);
+            initializeMapArea();
+            showMessages();    
         }
     }//GEN-LAST:event_importFileActionPerformed
     

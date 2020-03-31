@@ -19,7 +19,13 @@ public class Player {
         this.name = name;
         this.planetsName = planetsName;
         this.type = type;
-     }
+    }
+
+    public Player(String name, String type, Color color) {
+        this.name = name;
+        this.type = type;
+        this.color = color;
+    }
     
     public String getName() {
         return name;

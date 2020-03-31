@@ -1,5 +1,6 @@
 package com.hluther.gui;
 
+import com.hluther.drivers.Turn;
 import com.hluther.entityclasses.FleetDTO;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,12 +15,14 @@ public class InformationTable extends javax.swing.JDialog {
     private List<FleetDTO> fleet;
     private ObservableList<FleetDTO> observableList;
     private Konquest konquets;
+    private Turn turnsDriver;
     
-    public InformationTable(Konquest parent, boolean modal) {
+    public InformationTable(Konquest parent, boolean modal, Turn turnsDriver) {
         super(parent, modal);
         this.konquets = parent;
         this.fleet = new ArrayList<>();
         this.observableList = ObservableCollections.observableList(fleet);
+        this.turnsDriver = turnsDriver;
         initComponents();
         fleetsTable.setShowVerticalLines(true);
         this.setLocationRelativeTo(parent);
@@ -35,7 +38,12 @@ public class InformationTable extends javax.swing.JDialog {
     
     public void updateObservableList(List<FleetDTO> prestamoListObservable) {
         this.observableList.clear();
-        this.observableList.addAll(prestamoListObservable);
+        
+        for(int i = 0; i < fleet.size(); i++){
+            if(fleet.get(i).getAttackingPlayer() == turnsDriver.getActualPlayer()){
+                this.observableList.add(fleet.get(i));
+            }
+        }
     }
     
     
@@ -161,7 +169,7 @@ public class InformationTable extends javax.swing.JDialog {
         /* Create and display the dialog */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                InformationTable dialog = new InformationTable(new Konquest(), true);
+                InformationTable dialog = new InformationTable(new Konquest(), true, new Turn());
                 dialog.addWindowListener(new java.awt.event.WindowAdapter() {
                     @Override
                     public void windowClosing(java.awt.event.WindowEvent e) {

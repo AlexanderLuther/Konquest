@@ -13,6 +13,8 @@ public class Turn {
     private int turn;
     private int actualIndex;
     
+    public Turn(){}
+    
     public Turn(List<Player> players){
         this.players = players;
         this.turn = 0;
@@ -60,4 +62,10 @@ public class Turn {
     public int getActualIndex() {
         return actualIndex;
     }
+
+    public void setActualIndex(int actualIndex) {
+        this.actualIndex = actualIndex;
+    }
+    
+    
 }

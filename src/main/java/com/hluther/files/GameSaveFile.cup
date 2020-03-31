@@ -1,0 +1,195 @@
+package com.hluther.parser;
+import java_cup.runtime.*;
+import com.hluther.gui.Konquest;
+import com.hluther.lexer.GameSaveFileLexer;
+import com.hluther.drivers.GameSaveFile;
+
+parser code {:
+
+    private Konquest konquestFrame;
+    private GameSaveFile gameSaveFileDriver;
+  
+    public GameSaveFileParser(GameSaveFileLexer lexer, Konquest konquestFrame) { 
+        super(lexer);
+        this.konquestFrame = konquestFrame;
+        this.gameSaveFileDriver = konquestFrame.getGameSaveFileDriver();
+    }
+
+    public void syntax_error(Symbol s){
+        System.out.println("Error " + s);
+        konquestFrame.printGameSaveSintaxError(s);
+    }
+
+    public void unrecovered_syntax_error(Symbol s){
+        System.out.println("Error grave " + s);
+        konquestFrame.printGameSaveSintaxError(s);
+    } 
+
+:}
+
+/* Terminals */
+terminal String NAMEPLANET, NAMEPLAYER, CURLYBRACKETO, CURLYBRACKETC, SQUAREBRACKETO, SQUAREBRACKETC, COLON, COMMA, MAP, SIZE, BLIND, ACCUMULATE, NEUTRAL, SHOWSPACESHIPS, SHOWSTATISTICS, PRODUCTION, ROWS, COLUMNS, ROW, COLUMN, INTEGER, INITIALTURN, ARRIVALTURN, INITIALROW, SENDINGS,
+                COMPLETION, PLANETS, SPACESHIPS, DEATHRATE, NEUTRALPLANETS, PLAYERS, TYPE, HUMAN, EASY, HARD, NAME, OWNER, NEUTRALTYPE, COLOR, BLUE, YELLOW, GREEN, RED, ORANGE, LIGHTGRAY, CYAN, DARKGRAY, WHITE, MAGENTA,TRUE, FALSE, DOUBLE, INITIALCOLUMN, TARGETROW, TARGETCOLUMN;
+
+/* Non-terminals */
+non terminal       konquest, map, planets, planetsDescription, neutralPlanets, players, playersDescription, sendings, sendingsDescription;
+non terminal String     playerName, name, playerType, type, playerColor, color, planetName, planetOwner, attackingPlayer;
+non terminal Integer    rows, columns, completion, planetRow, planetColumn, planetSpaceShips, planetProduction, initialTurn, arrivalTurn, initialRow, initialColumn, targetRow, targetColumn, spaceShipsAmount, integerValue;
+non terminal Boolean    showSpaceShips, showStatistics, boolean, blindMap, accumulate, planetType;
+non terminal Double     planetDeathRate;
+
+/* The grammar */
+start with konquest;
+
+
+/*-------------------------------------------------------ESTRUCTURA GENERAL KONQUEST-------------------------------------------------------*/
+
+konquest::=     CURLYBRACKETO map COMMA planets COMMA neutralPlanets COMMA players COMMA sendings CURLYBRACKETC
+                | CURLYBRACKETO map COMMA planets COMMA players COMMA sendings CURLYBRACKETC
+                | CURLYBRACKETO map COMMA planets COMMA neutralPlanets COMMA players CURLYBRACKETC
+                | CURLYBRACKETO map COMMA planets COMMA players CURLYBRACKETC
+                ;
+
+/*-------------------------------------------------------ESTRUCTURA MAPA-------------------------------------------------------*/
+
+map::=  MAP COLON CURLYBRACKETO SIZE COLON CURLYBRACKETO rows:rows COMMA columns:columns CURLYBRACKETC COMMA blindMap:blindMap COMMA accumulate:accumulate COMMA NEUTRAL COLON CURLYBRACKETO showSpaceShips:showSpaceShips COMMA showStatistics:showStatistics CURLYBRACKETC COMMA completion:completion CURLYBRACKETC {:gameSaveFileDriver.createMap(rows, columns, blindMap, accumulate, showSpaceShips, showStatistics, completion);:}
+        | MAP COLON CURLYBRACKETO SIZE COLON CURLYBRACKETO rows:rows COMMA columns:columns CURLYBRACKETC COMMA blindMap:blindMap COMMA accumulate:accumulate COMMA NEUTRAL COLON CURLYBRACKETO showSpaceShips:showSpaceShips COMMA showStatistics:showStatistics CURLYBRACKETC CURLYBRACKETC {:gameSaveFileDriver.createMap(rows, columns, blindMap, accumulate, showSpaceShips, showStatistics, -1);:}
+        ;
+
+rows::=     ROWS COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+            ;
+
+columns::=   COLUMNS COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+            ;
+
+showSpaceShips::=   SHOWSPACESHIPS COLON boolean:value {:RESULT = value;:}
+                    ;
+
+showStatistics::=   SHOWSTATISTICS COLON boolean:value {:RESULT = value;:}
+                    ;
+
+boolean::=     TRUE:value {:RESULT = Boolean.valueOf(value);:}
+               | FALSE:value {:RESULT = Boolean.valueOf(value);:}
+               ;
+
+blindMap::=     BLIND COLON boolean:value {:RESULT = value;:}
+                ;
+
+accumulate::=   ACCUMULATE COLON boolean:value {:RESULT = value;:}
+                ;
+
+completion::=   COMPLETION COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+                ;  
+
+/*-------------------------------------------------------ESTRUCTURA PLANETAS-------------------------------------------------------*/
+
+planets::=     PLANETS COLON SQUAREBRACKETO planetsDescription SQUAREBRACKETC 
+               ;
+
+planetsDescription::=  CURLYBRACKETO planetName:name COMMA planetOwner:owner COMMA planetSpaceShips:spaceShips COMMA planetProduction:production COMMA planetDeathRate:deathRate COMMA planetType:type COMMA planetRow:row COMMA planetColumn:column CURLYBRACKETC COMMA planetsDescription {:gameSaveFileDriver.createPlanet(name, owner, spaceShips, production, deathRate, type, row, column);:}
+                       | CURLYBRACKETO planetName:name COMMA planetOwner:owner COMMA planetSpaceShips:spaceShips COMMA planetProduction:production COMMA planetDeathRate:deathRate COMMA planetType:type COMMA planetRow:row COMMA planetColumn:column CURLYBRACKETC {:gameSaveFileDriver.createPlanet(name, owner, spaceShips, production, deathRate, type, row, column);:}
+                       ;
+
+planetName::=   NAME COLON NAMEPLANET:name {:RESULT = name.replace("\"", "");:}
+                ;
+
+planetOwner::=  OWNER COLON name:owner {:RESULT = owner.replace("\"", "");:}
+                ;
+
+planetSpaceShips::=     SPACESHIPS COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+                        ;
+
+planetProduction::=     PRODUCTION COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+                        ;
+
+planetDeathRate::=      DEATHRATE COLON DOUBLE:amount {:RESULT = Double.parseDouble(amount);:}
+                        ;
+
+planetType::=   NEUTRALTYPE COLON boolean:value {:RESULT = value;:}
+                ;
+
+planetRow::=   ROW COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+                ;
+
+planetColumn::=     COLUMN COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+                    ;
+
+/*-------------------------------------------------------ESTRUCTURA PLANETAS_NEUTRALES-------------------------------------------------------*/
+
+neutralPlanets::=   NEUTRALPLANETS COLON SQUAREBRACKETO planetsDescription SQUAREBRACKETC 
+                    ;
+           
+/*-------------------------------------------------------ESTRUCTURA JUGADORES-------------------------------------------------------*/
+
+players::=     PLAYERS COLON SQUAREBRACKETO playersDescription SQUAREBRACKETC {:gameSaveFileDriver.assignPlanets();:} 
+               ;
+
+playersDescription::=   CURLYBRACKETO playerName:name COMMA playerType:type COMMA playerColor:color CURLYBRACKETC COMMA playersDescription {:gameSaveFileDriver.createPlayer(name, type, color);:}
+                        | CURLYBRACKETO playerName:name COMMA playerType:type COMMA playerColor:color CURLYBRACKETC {:gameSaveFileDriver.createPlayer(name, type, color);:}
+                       ;
+
+playerName::=   NAME COLON name:name {:RESULT = name;:}
+                ;
+
+name::=     NAMEPLANET:name {:RESULT = name.replace("\"", "");:}
+            | NAMEPLAYER:name {:RESULT = name.replace("\"", "");:}
+            ;
+
+playerType::=   TYPE COLON type:type {:RESULT = type;:}
+                ;
+
+type::=     HUMAN:type {:RESULT = type;:}
+            | EASY:type {:RESULT = type;:} 
+            | HARD:type {:RESULT = type;:}
+            ;
+
+playerColor::=  COLOR COLON color:color {:RESULT = color;:}
+                ;
+
+color::=    BLUE:color {:RESULT = color;:}
+            | YELLOW:color {:RESULT = color;:}
+            | GREEN:color {:RESULT = color;:}
+            | RED:color {:RESULT = color;:}
+            | ORANGE:color {:RESULT = color;:}
+            | LIGHTGRAY:color {:RESULT = color;:} 
+            | CYAN:color {:RESULT = color;:}
+            | DARKGRAY:color {:RESULT = color;:}
+            | WHITE:color {:RESULT = color;:}
+            | MAGENTA:color {:RESULT = color;:}
+            ;
+
+/*-------------------------------------------------------ESTRUCTURA ENVIOS-------------------------------------------------------*/
+
+sendings::=    SENDINGS COLON SQUAREBRACKETO sendingsDescription SQUAREBRACKETC
+               ;
+
+sendingsDescription::=   CURLYBRACKETO initialTurn:initialTurn COMMA arrivalTurn:arrivalTurn COMMA initialRow:initialRow COMMA initialColumn:initialColumn COMMA targetRow:targetRow COMMA targetColumn:targetColumn COMMA spaceShipsAmount:spaceShipsAmount COMMA attackingPlayer:attackingPlayer CURLYBRACKETC COMMA sendingsDescription {:gameSaveFileDriver.createFleet(initialTurn, arrivalTurn, initialRow, initialColumn, targetRow, targetColumn, spaceShipsAmount, attackingPlayer);:}
+                         | CURLYBRACKETO initialTurn:initialTurn COMMA arrivalTurn:arrivalTurn COMMA initialRow:initialRow COMMA initialColumn:initialColumn COMMA targetRow:targetRow COMMA targetColumn:targetColumn COMMA spaceShipsAmount:spaceShipsAmount COMMA attackingPlayer:attackingPlayer CURLYBRACKETC {:gameSaveFileDriver.createFleet(initialTurn, arrivalTurn, initialRow, initialColumn, targetRow, targetColumn, spaceShipsAmount, attackingPlayer);:}
+                         ;
+
+initialTurn::=  INITIALTURN integerValue:amount {:RESULT = amount;:}
+                ;
+
+arrivalTurn::=  ARRIVALTURN integerValue:amount {:RESULT = amount;:}
+                ;
+
+initialRow::=   INITIALROW integerValue:amount {:RESULT = amount;:}
+                ;
+
+initialColumn::=    INITIALCOLUMN integerValue:amount {:RESULT = amount;:}
+                    ;
+
+targetRow::=    TARGETROW integerValue:amount {:RESULT = amount;:}
+                ;
+
+targetColumn::=     TARGETCOLUMN integerValue:amount {:RESULT = amount;:}
+                    ;
+
+spaceShipsAmount::=     SPACESHIPS integerValue:amount {:RESULT = amount;:} 
+                        ;
+
+attackingPlayer::=  NAME COLON name:name {:RESULT = name;:}
+                    ;
+
+integerValue::=     COLON INTEGER:amount {:RESULT = Integer.parseInt(amount);:}
+                    ;

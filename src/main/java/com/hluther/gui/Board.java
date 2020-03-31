@@ -20,6 +20,7 @@ public class Board extends JPanel{
     private Square[][] squares;
     private int rows;
     private int columns;
+    private boolean interactive;
     private Konquest konquest;
     private List<Player> players;
     private List<Planet> neutralPlanets;
@@ -30,10 +31,11 @@ public class Board extends JPanel{
     Constructor de la clase.
     Llama a inicializar la clase y a la cracion del tablero.
     */
-    public Board(int rows, int columns, Konquest konquest) {
+    public Board(int rows, int columns, boolean interactive, Konquest konquest) {
         this.rows = rows;
         this.columns = columns;
         this.konquest = konquest;
+        this.interactive = interactive;
         this.map = konquest.getMap();
         this.players = konquest.getPlayers();
         this.neutralPlanets = konquest.getNeutralPlanets();
@@ -54,6 +56,15 @@ public class Board extends JPanel{
         this.selectedSquare = selectedSquare;
         konquest.setSelectedSquare(selectedSquare);
     }
+
+    public boolean isInteractive() {
+        return interactive;
+    }
+
+    public Square[][] getSquares() {
+        return squares;
+    }
+    
     
     //Metodo encargado de actualizar todas las casilla del tablero que contienen un planeta.
     public void reload(){
@@ -94,35 +105,53 @@ public class Board extends JPanel{
     private void addPlanets(){
         int x;
         int y;        
-        for(int i = 0; i < players.size(); i++){
-            for(int j = 0; j < players.get(i).getPlanets().size(); j++){
+        for(Player currentPlayer : players){
+            for(Planet currentPlanet : currentPlayer.getPlanets()){
+                if(interactive){
+                    x = getRandomInt(rows, 0);
+                    y = getRandomInt(columns, 0);
+                    while(squares[x][y].getPlanet() != null){
+                        x = getRandomInt(rows, 0);
+                        y = getRandomInt(columns, 0);
+                    }
+                    currentPlanet.setRow(x);
+                    currentPlanet.setColumn(y);
+                }
+                else{
+                    x = currentPlanet.getRow();
+                    y = currentPlanet.getColumn();
+                }
+                squares[x][y].setPlanet(currentPlanet);
+                squares[x][y].setColor(currentPlayer.getColor());
+                squares[x][y].setImage(getRandomInt(4, 0));
+                squares[x][y].setGuiInformation();
+            } 
+        }
+        if(interactive){
+            if(map.isRandom()){
+                for(int j = 0; j < map.getNeutralPlanets(); j++){
+                    Planet planet = new Planet(getRandomName(), 5, getRandomInt(11, 1), getRandomDouble(), true, false);
+                    planet.setOwner("Neutral");
+                    neutralPlanets.add(planet); 
+                }    
+            }
+        }   
+        for(Planet currentPlanet : neutralPlanets){
+            if(interactive){
                 x = getRandomInt(rows, 0);
                 y = getRandomInt(columns, 0);
                 while(squares[x][y].getPlanet() != null){
                     x = getRandomInt(rows, 0);
                     y = getRandomInt(columns, 0);
-                }   
-                squares[x][y].setPlanet(players.get(i).getPlanets().get(j));
-                squares[x][y].setColor(players.get(i).getColor());
-                squares[x][y].setImage(getRandomInt(4, 0));
-                squares[x][y].setGuiInformation();
+                }
+                currentPlanet.setRow(x);
+                currentPlanet.setColumn(y);
             }
-        }
-        if(map.isRandom()){
-            for(int j = 0; j < map.getNeutralPlanets(); j++){
-                Planet planet = new Planet(getRandomName(), 5, getRandomInt(11, 1), getRandomDouble(), true, false);
-                planet.setOwner("Neutral");
-                neutralPlanets.add(planet); 
-            }    
-        }    
-        for(int i = 0; i < neutralPlanets.size(); i++){  
-            x = getRandomInt(rows, 0);
-            y = getRandomInt(columns, 0);
-            while(squares[x][y].getPlanet() != null){
-                x = getRandomInt(rows, 0);
-                y = getRandomInt(columns, 0);
-            }   
-            squares[x][y].setPlanet(neutralPlanets.get(i));
+            else{
+                x = currentPlanet.getRow();
+                y = currentPlanet.getColumn();
+            }
+            squares[x][y].setPlanet(currentPlanet);
             squares[x][y].setImage(getRandomInt(4, 0));
             squares[x][y].setGuiInformation();
         }

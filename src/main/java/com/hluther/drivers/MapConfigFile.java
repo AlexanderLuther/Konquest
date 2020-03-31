@@ -49,14 +49,14 @@ public class MapConfigFile {
     */
     public void createMapData(String name, String singleData){
         dataExist = false;
-        for(int i = 0; i< mapData.size(); i++){
-            if(mapData.get(i).getName().equals(name)){
+        for(MapData currentMapData : mapData){
+            if(currentMapData.getName().equals(name)){
                 dataExist = true;            
-                msg = "Se detecto mas de una vez el elemento \""+mapData.get(i).getName()+"\". Solamente se considera la primera ocurrencia, se descarto \""+name+":"+singleData+"\".";
+                msg = "Se detecto mas de una vez el elemento \""+currentMapData.getName()+"\". Solamente se considera la primera ocurrencia, se descarto \""+name+":"+singleData+"\".";
                 messages.add(msg);
                 break;
             }
-        }       
+        }
         if(!dataExist){
             data = new MapData(name, singleData);
             mapData.add(data);

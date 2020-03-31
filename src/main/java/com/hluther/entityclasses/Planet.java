@@ -10,8 +10,8 @@ public class Planet {
     private String owner;
     private int spaceShips;
     private int production;
-    private int x;
-    private int y;
+    private int row;
+    private int column;
     private double deathRate;
     private boolean neutral;
     private boolean generalProduction;
@@ -23,6 +23,17 @@ public class Planet {
         this.deathRate = deathRate;
         this.neutral = neutral;
         this.generalProduction = generalProduction;
+    }
+
+    public Planet(String name, String owner, int spaceShips, int production, int row, int column, double deathRate, boolean neutral) {
+        this.name = name;
+        this.owner = owner;
+        this.spaceShips = spaceShips;
+        this.production = production;
+        this.row = row;
+        this.column = column;
+        this.deathRate = deathRate;
+        this.neutral = neutral;
     }
     
     public boolean isNeutral() {
@@ -79,22 +90,21 @@ public class Planet {
 
     public void setOwner(String owner) {
         this.owner = owner;
+    }  
+
+    public int getRow() {
+        return row;
     }
 
-    public int getX() {
-        return x;
+    public void setRow(int row) {
+        this.row = row;
     }
 
-    public void setX(int x) {
-        this.x = x;
+    public int getColumn() {
+        return column;
     }
 
-    public int getY() {
-        return y;
+    public void setColumn(int column) {
+        this.column = column;
     }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-    
 }

@@ -36,7 +36,15 @@ public class Map {
         this.completion = completion;
     }
 
-    
+    public Map(int rows, int columns, boolean showSpaceShips, boolean showStatistics, boolean blindMap, boolean accumulate, int completion) {
+        this.rows = rows;
+        this.columns = columns;
+        this.showSpaceShips = showSpaceShips;
+        this.showStatistics = showStatistics;
+        this.blindMap = blindMap;
+        this.accumulate = accumulate;
+        this.completion = completion;
+    }
     
     public String getName() {
         return name;

@@ -8,18 +8,20 @@ import com.hluther.gui.Square;
  */
 public class FleetDTO {
     
-    int fleetNumber;
-    String initialPlanetName;
-    String targetPlanetName;
-    int spaceShipsAmount;
-    double initialPlanetDeathRate;
-    long arrivalTurn;
+    private int initialTurn;
+    private String initialPlanetName;
+    private String targetPlanetName;
+    private int spaceShipsAmount;
+    private double initialPlanetDeathRate;
+    private long arrivalTurn;
     private Square initialSquare;
     private Square targetSquare;
     private Player attackingPlayer;
 
-    public FleetDTO(int fleetNumber, Square initialSquare, Square targetSquare, int spaceShipsAmount, long arrivalTurn, Player attackingPlayer) {
-        this.fleetNumber = fleetNumber;
+    
+    
+    public FleetDTO(int initialTurn, Square initialSquare, Square targetSquare, int spaceShipsAmount, long arrivalTurn, Player attackingPlayer) {
+        this.initialTurn = initialTurn;
         this.initialSquare = initialSquare;
         this.targetSquare = targetSquare;
         this.spaceShipsAmount = spaceShipsAmount;
@@ -28,14 +30,6 @@ public class FleetDTO {
         this.initialPlanetName = initialSquare.getPlanet().getName();
         this.targetPlanetName = this.targetSquare.getPlanet().getName();
         this.initialPlanetDeathRate = initialSquare.getPlanet().getDeathRate();
-    }
-
-    public int getFleetNumber() {
-        return fleetNumber;
-    }
-
-    public void setFleetNumber(int fleetNumber) {
-        this.fleetNumber = fleetNumber;
     }
 
     public String getInitialPlanetName() {
@@ -100,6 +94,14 @@ public class FleetDTO {
 
     public void setAttackingPlayer(Player attackingPlayer) {
         this.attackingPlayer = attackingPlayer;
+    }
+
+    public int getInitialTurn() {
+        return initialTurn;
+    }
+
+    public void setInitialTurn(int initialTurn) {
+        this.initialTurn = initialTurn;
     }
     
 }

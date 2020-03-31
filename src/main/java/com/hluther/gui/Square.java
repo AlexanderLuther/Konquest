@@ -16,8 +16,8 @@ import javax.swing.JLabel;
  */
 public class Square extends javax.swing.JPanel implements MouseListener{
     
-    private int coordinateX;
-    private int coordinateY;
+    private int row;
+    private int column;
     private Planet planet;
     private Color color;
     private Board board;
@@ -25,10 +25,10 @@ public class Square extends javax.swing.JPanel implements MouseListener{
     private JLabel planetNameLabel = new JLabel();
     private JLabel spaceShipsAmountLabel = new JLabel();
   
-    public Square(int x, int y, Board board) {
+    public Square(int row, int column, Board board) {
         initComponents();        
-        this.coordinateX = x;
-        this.coordinateY = y;
+        this.row = row;
+        this.column = column;
         this.board = board;
     }
      
@@ -54,21 +54,21 @@ public class Square extends javax.swing.JPanel implements MouseListener{
         this.setBackground(color);
         this.setOpaque(true);
     }
-
-    public int getCoordinateX() {
-        return coordinateX;
+    
+    public int getRow() {
+        return row;
     }
 
-    public void setCoordinateX(int coordinateX) {
-        this.coordinateX = coordinateX;
+    public void setRow(int row) {
+        this.row = row;
     }
 
-    public int getCoordinateY() {
-        return coordinateY;
+    public int getColumn() {
+        return column;
     }
     
-    public void setCoordinateY(int coordinateY) {
-        this.coordinateY = coordinateY;
+    public void setColumn(int column) {
+        this.column = column;
     }
 //---------------------------------------------------------------------------------------------------------------------------------//
         
