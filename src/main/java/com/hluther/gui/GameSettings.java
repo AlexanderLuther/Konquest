@@ -291,6 +291,7 @@ public class GameSettings extends javax.swing.JDialog {
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         importFile = new javax.swing.JButton();
+        jLabel18 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         closeButton = new javax.swing.JButton();
@@ -751,10 +752,12 @@ public class GameSettings extends javax.swing.JDialog {
         });
         jToolBar1.add(importFile);
 
-        jLabel2.setText("               ");
-        jToolBar1.add(jLabel2);
+        jLabel18.setText("          ");
+        jToolBar1.add(jLabel18);
 
-        jLabel6.setIcon(new javax.swing.ImageIcon(getClass().getResource("/detener.png"))); // NOI18N
+        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/cerrar.png"))); // NOI18N
+        jToolBar1.add(jLabel2);
         jToolBar1.add(jLabel6);
 
         closeButton.setFont(new java.awt.Font("SansSerif", 1, 14)); // NOI18N
@@ -830,8 +833,7 @@ public class GameSettings extends javax.swing.JDialog {
         messagesArea.setText("");
         fileChooser = new JFileChooser();
         configureFileChooser(fileChooser);
-        int selection =fileChooser.showOpenDialog(this);  
-
+        var selection =fileChooser.showOpenDialog(this);  
         if(selection == JFileChooser.APPROVE_OPTION){
             String data = konquestFrame.getFilesDriver().openFile(fileChooser.getSelectedFile().toString());
             konquestFrame.getMapConfigFile().clearLists();
@@ -1048,6 +1050,7 @@ public class GameSettings extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel15;
     private javax.swing.JLabel jLabel16;
     private javax.swing.JLabel jLabel17;
+    private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;

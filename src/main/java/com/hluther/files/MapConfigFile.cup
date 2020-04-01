@@ -93,6 +93,10 @@ mapRulesSelector::=     id
                         | blindMap COMMA mapRulesSelector
                         | accumulate COMMA mapRulesSelector
                         | completion COMMA mapRulesSelector
+                        | error:e planets {:syntax_error((Symbol)e);:}
+                        | error:e neutralPlanets {:syntax_error((Symbol)e);:}
+                        | error:e players {:syntax_error((Symbol)e);:}
+                        | error:e COMMA mapRulesSelector {:syntax_error((Symbol)e);:} 
                         ;
 
 //------------------------------------------------------------------------------          
@@ -194,6 +198,10 @@ planetRulesSelector::=      planetName:name COMMA planetProduction:production CO
                             | planetDeathRate:deathRate COMMA planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name, ships, production, deathRate, false, false);:}
                             | planetDeathRate:deathRate COMMA planetProduction:production COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name, ships, production, deathRate, false, false);:}
                             | planetDeathRate:deathRate COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name, ships, production, deathRate, false, false);:}
+                            | error:e SQUAREBRACKETC COMMA map
+                            | error:e SQUAREBRACKETC COMMA neutralPlanets
+                            | error:e SQUAREBRACKETC COMMA players    
+                            | error:e CURLYBRACKETC COMMA planetsDescription
                             ;
 
 planetName::=   NAME COLON NAMEPLANET:name {:RESULT = name.replace("\"", "");:}
@@ -215,7 +223,6 @@ neutralPlanets::=   NEUTRALPLANETS COLON SQUAREBRACKETO neutralPlanetsDescriptio
 
 neutralPlanetsDescription::=    CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC COMMA neutralPlanetsDescription
                                 | CURLYBRACKETO neutralPlanetRulesSelector CURLYBRACKETC
-                                | error:e CURLYBRACKETC COMMA neutralPlanetsDescription {:syntax_error((Symbol)e);:}
                                 ;
 
 neutralPlanetRulesSelector::=   planetName:name COMMA planetProduction:production COMMA planetSpaceShips:ships COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name, ships, production, deathRate, true, false);:}
@@ -247,7 +254,11 @@ neutralPlanetRulesSelector::=   planetName:name COMMA planetProduction:productio
                                 | planetSpaceShips:ships COMMA planetName:name COMMA planetDeathRate:deathRate {:mapConfigFileDriver.createPlanet(name, ships, -1, deathRate, true, true);:}
                                 | planetSpaceShips:ships COMMA planetDeathRate:deathRate COMMA planetName:name {:mapConfigFileDriver.createPlanet(name, ships, -1, deathRate, true, true);:}
                                 | planetDeathRate:deathRate COMMA planetName:name COMMA planetSpaceShips:ships {:mapConfigFileDriver.createPlanet(name, ships, -1, deathRate, true, true);:}
-                                | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name, ships, -1, deathRate, true, true);:}
+                                | planetDeathRate:deathRate COMMA planetSpaceShips:ships COMMA planetName:name {:mapConfigFileDriver.createPlanet(name, ships, -1, deathRate, true, true);:}    
+                                | error:e SQUAREBRACKETC COMMA map
+                                | error:e SQUAREBRACKETC COMMA planets
+                                | error:e SQUAREBRACKETC COMMA players
+                                | error:e CURLYBRACKETC COMMA neutralPlanetsDescription {:syntax_error((Symbol)e);:}           
                                 ;
 
 /*-------------------------------------------------------ESTRUCTURA JUGADORES-------------------------------------------------------*/
@@ -258,13 +269,6 @@ players::=     PLAYERS COLON SQUAREBRACKETO playersDescription SQUAREBRACKETC
 
 playersDescription::=   CURLYBRACKETO playerRulesSelector CURLYBRACKETC COMMA playersDescription
                         | CURLYBRACKETO playerRulesSelector CURLYBRACKETC
-                        | error:e CURLYBRACKETC COMMA playersDescription {:syntax_error((Symbol)e);:}
-                        | error:e SQUAREBRACKETC {:syntax_error((Symbol)e);:}
-                        | error:e HARD {:syntax_error((Symbol)e);:}
-                        | error:e EASY {:syntax_error((Symbol)e);:}
-                        | error:e HUMAN {:syntax_error((Symbol)e);:}
-                        | error:e NAMEPLANET {:syntax_error((Symbol)e);:}
-                        | error:e NAMEPLAYER {:syntax_error((Symbol)e);:}
                         ;
 
 playerRulesSelector::=    playerPlanets:planets COMMA playerName:name COMMA playerType:type {:mapConfigFileDriver.createPlayer(name, planets, type);:}
@@ -273,6 +277,11 @@ playerRulesSelector::=    playerPlanets:planets COMMA playerName:name COMMA play
                           | playerName:name COMMA playerType:type COMMA playerPlanets:planets {:mapConfigFileDriver.createPlayer(name, planets, type);:}
                           | playerType:type COMMA playerName:name COMMA playerPlanets:planets {:mapConfigFileDriver.createPlayer(name, planets, type);:}
                           | playerType:type COMMA playerPlanets:planets COMMA playerName:name {:mapConfigFileDriver.createPlayer(name, planets, type);:}
+                          | error:e SQUAREBRACKETC COMMA map
+                          | error:e SQUAREBRACKETC COMMA planets
+                          | error:e SQUAREBRACKETC COMMA neutralPlanets
+                          | error:e SQUAREBRACKETC COMMA playersDescription {:syntax_error((Symbol)e);:}  
+                          | error:e CURLYBRACKETC COMMA playersDescription {:syntax_error((Symbol)e);:}   
                           ;
 
 playerName::=   NAME COLON name:name {:RESULT = name;:}

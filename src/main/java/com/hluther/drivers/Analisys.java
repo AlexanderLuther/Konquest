@@ -14,6 +14,7 @@ import java.io.StringReader;
 public class Analisys {
     
     public void doMapConfigFileAnalysis(String text, Konquest konquestFrame){
+        System.out.println("sdafsdfad");
         try { 
             new MapConfigFileParser(new MapConfigFileLexer(new StringReader(text), konquestFrame), konquestFrame).parse();
         } 

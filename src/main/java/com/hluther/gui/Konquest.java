@@ -462,13 +462,16 @@ public class Konquest extends javax.swing.JFrame {
         if(selection == JFileChooser.APPROVE_OPTION){
             String data = filesDriver.openFile(fileChooser.getSelectedFile().toString());
             analisisDriver.doGameSaveFileAnalysis(data, this);
-            neutralPlanets = gameSaveFileDriver.getPlanets();
-            players = gameSaveFileDriver.getPlayers();
-            map = gameSaveFileDriver.getMap();  
-            replay = true;
-            startGame();
+            if(!sintaxError){
+                neutralPlanets = gameSaveFileDriver.getPlanets();
+                players = gameSaveFileDriver.getPlayers();
+                map = gameSaveFileDriver.getMap();  
+                replay = true;
+                startGame();
+                return selection == JFileChooser.APPROVE_OPTION; 
+            }
         }
-        return selection == JFileChooser.APPROVE_OPTION; 
+        return false;
     }
  
     @SuppressWarnings("unchecked")
